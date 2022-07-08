@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/basis_signin_button"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="56dp"
+        android:layout_marginBottom="80dp"
+        android:text="새 계정 만들기"
+        app:layout_constraintBottom_toTopOf="@id/kakao_login_button"
+        app:layout_constraintLeft_toLeftOf="parent" />
 
     <ImageButton
         android:id="@+id/kakao_login_button"

@@ -1,4 +1,4 @@
-package com.example.bloombuddy.accounts;
+package com.example.bloombuddy.form;
 
 import com.google.gson.annotations.SerializedName;
 
