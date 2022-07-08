@@ -9,8 +9,10 @@
         <entry key="app/src/main/res/layout/activity2_main.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/layout/activity_kakao_auth_code_handler.xml" value="0.21822916666666667" />
         <entry key="app/src/main/res/layout/activity_kakao_login.xml" value="0.19479166666666667" />
-        <entry key="app/src/main/res/layout/activity_login.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/activity_kotlin.xml" value="0.2803461710611979" />
+        <entry key="app/src/main/res/layout/activity_login.xml" value="0.298193359375" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.2081939697265625" />
+        <entry key="app/src/main/res/layout/activity_map.xml" value="0.19479166666666667" />
       </map>
     </option>
   </component>
