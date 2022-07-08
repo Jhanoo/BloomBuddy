@@ -1,6 +1,5 @@
 package com.example.bloombuddy;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -9,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -20,12 +20,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.kakao.sdk.common.util.Utility;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     // Google Sign In API와 호출할 구글 로그인 클라이언트
     GoogleSignInClient mGoogleSignInClient;
     private final int RC_SIGN_IN = 123;
     private static final String TAG = "MainActivity";
+    private final String logInText = "구글 계정으로 로그인";
     SignInButton signBt;
     Button logoutBt;
 
@@ -38,24 +39,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d("keyhash", keyHash);
 
         signBt = findViewById(R.id.sign_in_button);
-        signBt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                signIn();
-            }
-        });
+        signBt.setOnClickListener(this);
+        TextView textView = (TextView)signBt.getChildAt(0);
+        textView.setText(logInText);
         logoutBt = findViewById(R.id.logoutBt);
-//        logoutBt.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                mGoogleSignInClient.signOut()
-//                        .addOnCompleteListener(this, task -> {
-//                            Log.d(TAG, "onClick:logout success ");
-//                            mGoogleSignInClient.revokeAccess()
-//                                    .addOnCompleteListener(this, task1 -> Log.d(TAG, "onClick:revokeAccess success "));
-//                        });
-//            }
-//        });
+        logoutBt.setOnClickListener(this);
         // 앱에 필요한 사용자 데이터를 요청하도록 로그인 옵션을 설정한다.
         // DEFAULT_SIGN_IN parameter는 유저의 ID와 기본적인 프로필 정보를 요청하는데 사용된다.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -71,6 +59,24 @@ public class MainActivity extends AppCompatActivity {
         // 로그인 되있는 경우 (토큰으로 로그인 처리)
         if (gsa != null && gsa.getId() != null) {
 
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()){
+            case R.id.sign_in_button:
+                signIn();
+                break;
+            case R.id.logoutBt:
+                mGoogleSignInClient.signOut()
+                        .addOnCompleteListener(this, task -> {
+                            Log.d(TAG, "onClick:logout success ");
+                            mGoogleSignInClient.revokeAccess()
+                                    .addOnCompleteListener(this, task1 -> Log.d(TAG, "onClick:revokeAccess success "));
+
+                        });
+                break;
         }
     }
 
@@ -119,4 +125,19 @@ public class MainActivity extends AppCompatActivity {
             handleSignInResult(task);
         }
     }
+
+//    private void setGoogleButtonText(Button loginButton, String buttonText){
+//        int i = 0;
+//        while (i < loginButton.childCount){
+//            var v = loginButton.getChildAt(i)
+//            if (v is TextView) {
+//                var tv = v
+//                tv.setText(buttonText)
+//                tv.setGravity(Gravity.CENTER)
+//                return
+//            }
+//            i++
+//
+//        }
+//    }
 }
