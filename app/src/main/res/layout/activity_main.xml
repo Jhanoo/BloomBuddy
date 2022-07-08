@@ -33,7 +33,7 @@
 
 
     <TextView
-        android:id="@+id/kakao_nameTv"
+        android:id="@+id/nameTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -45,7 +45,7 @@
         app:layout_constraintTop_toBottomOf="@+id/kakao_profileImgView" />
 
     <Button
-        android:id="@+id/kakao_logoutBtn"
+        android:id="@+id/logoutBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -57,7 +57,7 @@
 
 
     <com.google.android.gms.common.SignInButton
-        android:id="@+id/sign_in_button"
+        android:id="@+id/googleLoginBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
