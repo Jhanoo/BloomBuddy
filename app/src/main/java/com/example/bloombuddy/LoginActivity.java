@@ -85,6 +85,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         textView.setText("구글 계정으로 로그인");
         googleLoginSIBtn.setSize(SignInButton.SIZE_WIDE);
 
+        Button btn = findViewById(R.id.btn0);
+        btn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("profile", userProfileUrl);
+            startActivity(intent);
+        });
+
 
         // kakao
         if (AuthApiClient.getInstance().hasToken()) {
