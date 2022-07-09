@@ -2,6 +2,7 @@ package com.example.bloombuddy;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -24,13 +25,12 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
-import com.kakao.sdk.common.util.Utility;
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.Account;
+import com.kakao.sdk.user.model.Profile;
 import com.navercorp.nid.NaverIdLoginSDK;
 import com.navercorp.nid.oauth.NidOAuthLogin;
 import com.navercorp.nid.oauth.OAuthLoginCallback;
-import com.navercorp.nid.oauth.view.NidOAuthLoginButton;
 import com.navercorp.nid.profile.NidProfileCallback;
 import com.navercorp.nid.profile.data.NidProfileResponse;
 
@@ -46,21 +46,31 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button logoutBtn;
     private ImageButton kakaoLoginBtn;
     private ImageButton naverLoginBtn;
-    private NidOAuthLoginButton naverRealLoginBtn;
     private NaverIdLoginSDK naverIdLoginSDK;
+
+    private String userName;
+    private String userProfileUrl;
+    private String userId;
+
+    private static int REQUEST_CODE_LOGOUT = 99;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        String keyHash = Utility.INSTANCE.getKeyHash(this);
-        Log.d("keyhash", keyHash);
+        // 상태바 투명하게
+        StatusBarKt.setStatusBarTransparent(this);
+        // 상태바 & 네비게이션바에 버튼이나 텍스트 등 화면구성요소 겹치지 않게 패딩
+        ConstraintLayout container = findViewById(R.id.login_constraintLayout);
+        container.setPadding(0, StatusBarKt.statusBarHeight(getApplicationContext()), 0, StatusBarKt.navigationHeight(getApplicationContext()));
+
+//        String keyHash = Utility.INSTANCE.getKeyHash(this);
+//        Log.d("keyhash", keyHash);
 
         kakaoLoginBtn = findViewById(R.id.kakaoLoginBtn);
         profileImgView = findViewById(R.id.profileImgView);
         nameTv = findViewById(R.id.nameTv);
-        naverRealLoginBtn = findViewById(R.id.naverRealLoginBtn);
         naverLoginBtn = findViewById(R.id.naverLoginBtn);
 
         googleLoginSIBtn = findViewById(R.id.googleLoginBtn);
@@ -76,7 +86,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         googleLoginSIBtn.setSize(SignInButton.SIZE_WIDE);
 
 
-
         // kakao
         if (AuthApiClient.getInstance().hasToken()) {
             UserApiClient.getInstance().accessTokenInfo((accessTokenInfo, error) -> {
@@ -86,6 +95,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Log.i("token ok", "토큰 정보 보기 성공" +
                             "\n회원번호: " + accessTokenInfo.getId() +
                             "\n만료시간: " + accessTokenInfo.getExpiresIn() + "초");
+                    kakaoGetUserInfo();
+                    startMapActivity("kakao");
+
                 } else {
                     Log.d("token ok", "토큰 있음 근데 만료됨");
                 }
@@ -102,19 +114,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 .build();
 
         // 위에서 만든 GoogleSignInOptions을 사용해 GoogleSignInClient 객체를 만듬
-        mGoogleSignInClient = GoogleSignIn.getClient(LoginActivity.this, gso);
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // 기존에 로그인 했던 계정을 확인한다.
-        GoogleSignInAccount gsa = GoogleSignIn.getLastSignedInAccount(LoginActivity.this);
+        GoogleSignInAccount gsa = GoogleSignIn.getLastSignedInAccount(this);
 
         // 로그인 되있는 경우 (토큰으로 로그인 처리)
         if (gsa != null && gsa.getId() != null) {
+            userName = gsa.getDisplayName();
+            userId = gsa.getId();
+            userProfileUrl = "" + gsa.getPhotoUrl();
+            setUserProfile();
 
+            startMapActivity("google");
         }
 
         naverIdLoginSDK = NaverIdLoginSDK.INSTANCE;
         naverIdLoginSDK.initialize(this, "hv_v8qfwCAtL8eMUrfPv", "nDD2xL5l4N", "BloomBuddy");
-
     }
 
     @Override
@@ -139,7 +155,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 kakaoLogout();
                 naverLogout();
                 googleLogout();
-                nameTv.setText("logout");
+                userId = null;
+                userName = null;
+                userProfileUrl = null;
+                setUserProfile();
                 break;
 
 
@@ -148,6 +167,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void startMapActivity(String platform) {
+        Intent intent = new Intent(this, MapActivity.class);
+        intent.putExtra("userData", new String[]{platform, userId, userName, userProfileUrl});
+
+        startActivityForResult(intent, REQUEST_CODE_LOGOUT);
+    }
+
+    private void setUserProfile() {
+        if (userId != null) {
+            if (userName != null)
+                nameTv.setText(userName);
+            if (userProfileUrl != null && !userProfileUrl.equals(""))
+                Glide.with(this)
+                        .load(userProfileUrl)
+                        .override(300, 300)
+                        .fitCenter()
+                        .into(profileImgView);
+        } else {
+            nameTv.setText("default");
+            profileImgView.setImageResource(com.kakao.common.R.drawable.kakao_default_profile_image);
+        }
+    }
+
+    public String[] getUserProfile() {
+        return new String[]{userId, userName, userProfileUrl};
+    }
 
     public void kakaoLogin() {
         String TAG = "login()";
@@ -163,9 +208,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void kakaoLogout() {
-        UserApiClient.getInstance().logout(error -> {
-            return null;
-        });
+        UserApiClient.getInstance().logout(error -> null);
     }
 
     public void kakaoAccountLogin() {
@@ -193,11 +236,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Log.i(TAG, "사용자 정보 요청 성공" +
                             "\n회원번호: " + user.getId());
                 }
-                Account user1 = user.getKakaoAccount();
-                Glide.with(this)
-                        .load(user1.getProfile().getProfileImageUrl())
-                        .into(profileImgView);
-                nameTv.setText(user1.getProfile().getNickname());
+                Account kakaoUserAccount = user.getKakaoAccount();
+                Profile kakaoUser = kakaoUserAccount.getProfile();
+                userName = kakaoUser.getNickname();
+                userProfileUrl = kakaoUser.getProfileImageUrl();
+                userId = "" + user.getId();
+                setUserProfile();
+                startMapActivity("kakao");
             }
             return null;
         });
@@ -210,12 +255,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             GoogleSignInAccount acct = completedTask.getResult(ApiException.class);
 
             if (acct != null) {
-                String personName = acct.getDisplayName();
-                String personId = acct.getId();
-                Uri personPhoto = acct.getPhotoUrl();
-                if (personPhoto != null)
-                    Glide.with(this).load(personPhoto).into(profileImgView);
-                nameTv.setText(personName);
+                String googleUserName = acct.getDisplayName();
+                String googleUserId = acct.getId();
+                Uri googleUserProfile = acct.getPhotoUrl();
+                userName = googleUserName;
+                if (googleUserProfile != null)
+                    userProfileUrl = "" + googleUserProfile;
+                userId = googleUserId;
+
+                setUserProfile();
+                startMapActivity("google");
 
             }
         } catch (ApiException e) {
@@ -253,15 +302,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             googleHandleSignInResult(task);
         }
+
+        if (requestCode == REQUEST_CODE_LOGOUT) {
+            switch (resultCode) {
+                case 10:
+                    kakaoLogout();
+                    break;
+                case 11:
+                    naverLogout();
+                    break;
+                case 12:
+                    googleLogout();
+                    break;
+            }
+            userId = null;
+            userName = null;
+            userProfileUrl = null;
+            setUserProfile();
+        }
     }
 
     private void startNaverLogin() {
         NidProfileCallback<NidProfileResponse> profileCallback = new NidProfileCallback<NidProfileResponse>() {
             @Override
             public void onSuccess(NidProfileResponse nidProfileResponse) {
-                String userName = nidProfileResponse.getProfile().getName();
-                String userId = nidProfileResponse.getProfile().getId();
-                nameTv.setText(userName);
+                String naverUserName = nidProfileResponse.getProfile().getName();
+                String naverUserId = nidProfileResponse.getProfile().getId();
+                String naverUserProfile = nidProfileResponse.getProfile().getProfileImage();
+
+                userName = naverUserName;
+                userProfileUrl = naverUserProfile;
+                userId = naverUserId;
+
+                setUserProfile();
+                startMapActivity("naver");
                 Log.d("naver login", "naver login success");
             }
 
