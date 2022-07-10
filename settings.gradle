@@ -10,7 +10,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/'} // 카카오
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' }  // 카카오 login
+        maven { url 'https://naver.jfrog.io/artifactory/maven/' }   // 네이버 map
     }
 }
 rootProject.name = "BloomBuddy"
