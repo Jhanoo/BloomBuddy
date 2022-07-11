@@ -1,13 +1,11 @@
 package com.example.bloombuddy
 
 import android.content.Intent
-import android.graphics.*
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
 import com.example.bloombuddy.databinding.ActivityLoginBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -118,7 +116,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             userName = gsa.displayName
             userId = gsa.id
             userProfileUrl = "" + gsa.photoUrl
-            setUserProfile()
             startMenuActivity("google")
         }
         naverIdLoginSDK = NaverIdLoginSDK
@@ -141,7 +138,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userId = null
                 userName = null
                 userProfileUrl = null
-                setUserProfile()
             }
             else -> {}
         }
@@ -151,21 +147,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         val intent = Intent(this, MenuActivity::class.java)
         intent.putExtra("userData", arrayOf(platform, userId, userName, userProfileUrl))
         startActivityForResult(intent, REQUEST_CODE_LOGOUT)
-    }
-
-    private fun setUserProfile() {
-        if (userId != null) {
-            if (userName != null) nameTv.text = userName
-            if (userProfileUrl != null && userProfileUrl != "")
-                Glide.with(this)
-                    .load(userProfileUrl)
-                    .override(300, 300)
-                    .fitCenter()
-                    .into(profileImgView!!)
-        } else {
-            nameTv.text = "default"
-            profileImgView.setImageResource(com.kakao.common.R.drawable.kakao_default_profile_image)
-        }
     }
 
     private fun kakaoLogin() {
@@ -184,13 +165,12 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
     private fun kakaoLogout() {
         val TAG = "kakaoLogout"
         UserApiClient.instance.logout { error ->
-        if (error != null) {
-            Log.e(TAG, "로그아웃 실패. SDK에서 토큰 삭제됨", error)
+            if (error != null) {
+                Log.e(TAG, "로그아웃 실패. SDK에서 토큰 삭제됨", error)
+            } else {
+                Log.i(TAG, "로그아웃 성공. SDK에서 토큰 삭제됨")
+            }
         }
-        else {
-            Log.i(TAG, "로그아웃 성공. SDK에서 토큰 삭제됨")
-        }
-    }
     }
 
     private fun kakaoAccountLogin() {
@@ -224,7 +204,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userName = kakaoUser?.nickname
                 userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
-                setUserProfile()
                 startMenuActivity("kakao")
             }
         }
@@ -241,7 +220,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userName = googleUserName
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
-                setUserProfile()
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -287,7 +265,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             userId = null
             userName = null
             userProfileUrl = null
-            setUserProfile()
         }
     }
 
@@ -301,7 +278,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     userName = naverUserName
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
-//                    setUserProfile()
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }
@@ -316,18 +292,16 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             }
         val oauthLoginCallback: OAuthLoginCallback = object : OAuthLoginCallback {
             override fun onSuccess() {
-//                String naverToken = naverIdLoginSDK.getAccessToken();
-//                Log.d("naver token", naverToken);
                 val nidOAuthLogin = NidOAuthLogin()
                 nidOAuthLogin.callProfileApi(profileCallback)
             }
 
             override fun onFailure(i: Int, s: String) {
-                Log.d("naverlogin", "naver login failed222")
+                Log.d("naverLogin", "naver login failed222")
             }
 
             override fun onError(i: Int, s: String) {
-                Log.d("naverlogin", "naver login error333")
+                Log.d("naverLogin", "naver login error333")
             }
         }
         naverIdLoginSDK.authenticate(this, oauthLoginCallback)
@@ -341,9 +315,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         var tempTime = System.currentTimeMillis()
         var intervalTime = tempTime - backPressedTime
 
-        if(intervalTime in 0..FINISH_INTERVAL_TIME)
+        if (intervalTime in 0..FINISH_INTERVAL_TIME)
             super.onBackPressed()
-        else{
+        else {
             backPressedTime = tempTime
             Toast.makeText(applicationContext, "한번 더 뒤로가기를 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
