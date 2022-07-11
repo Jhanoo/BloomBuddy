@@ -9,9 +9,7 @@ public class LoginResponse {
     @SerializedName("message")
     private String message;
 
-    @SerializedName("userId")
-    private int userId;
-
+    /*code가 327이면 api로그인 첫 시도, 프로필 이미지 보내줘야함*/
     public int getCode() {
         return code;
     }
@@ -20,7 +18,4 @@ public class LoginResponse {
         return message;
     }
 
-    public int getUserId() {
-        return userId;
-    }
 }

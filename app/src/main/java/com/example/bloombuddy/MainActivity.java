@@ -16,7 +16,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.kakao.sdk.user.UserApiClient;
 import com.navercorp.nid.NaverIdLoginSDK;
 
-public class MapActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private GoogleSignInClient mGoogleSignInClient;
     private NaverIdLoginSDK naverIdLoginSDK;
@@ -34,7 +34,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        setContentView(R.layout.activity_main);
 
         // 상태바 투명하게
         StatusBarKt.setStatusBarTransparent(this);

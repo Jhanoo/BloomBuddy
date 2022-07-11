@@ -12,7 +12,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.bloombuddy.R;
 import com.example.bloombuddy.network.RetrofitClient;
 import com.example.bloombuddy.network.ServiceApi;
 import com.example.bloombuddy.form.JoinData;
@@ -23,8 +22,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class JoinActivity extends AppCompatActivity {
-    private AutoCompleteTextView mEmailView;
+    private AutoCompleteTextView mIdView;
     private EditText mPasswordView;
+    private EditText mNicknameView;
     private EditText mNameView;
     private Button mJoinButton;
     private ProgressBar mProgressView;
@@ -35,8 +35,9 @@ public class JoinActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join);
 
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.join_email);
+        mIdView = (AutoCompleteTextView) findViewById(R.id.join_id);
         mPasswordView = (EditText) findViewById(R.id.join_password);
+        mNicknameView = (EditText) findViewById(R.id.join_nickname);
         mNameView = (EditText) findViewById(R.id.join_name);
         mJoinButton = (Button) findViewById(R.id.join_button);
         mProgressView = (ProgressBar) findViewById(R.id.join_progress);
@@ -53,20 +54,28 @@ public class JoinActivity extends AppCompatActivity {
 
     private void attemptJoin() {
         mNameView.setError(null);
-        mEmailView.setError(null);
+        mNicknameView.setError(null);
         mPasswordView.setError(null);
 
+        String id = mIdView.getText().toString();
         String name = mNameView.getText().toString();
-        String email = mEmailView.getText().toString();
+        String nickname = mNicknameView.getText().toString();
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
+        // 아이디의 유효성 검사
+        if (id.isEmpty()) {
+            mIdView.setError("아이디를 입력해주세요.");
+            focusView = mIdView;
+            cancel = true;
+        }
+
         // 패스워드의 유효성 검사
         if (password.isEmpty()) {
-            mEmailView.setError("비밀번호를 입력해주세요.");
-            focusView = mEmailView;
+            mPasswordView.setError("비밀번호를 입력해주세요.");
+            focusView = mPasswordView;
             cancel = true;
         } else if (!isPasswordValid(password)) {
             mPasswordView.setError("6자 이상의 비밀번호를 입력해주세요.");
@@ -74,16 +83,13 @@ public class JoinActivity extends AppCompatActivity {
             cancel = true;
         }
 
-        // 이메일의 유효성 검사
-        if (email.isEmpty()) {
-            mEmailView.setError("이메일을 입력해주세요.");
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError("@를 포함한 유효한 이메일을 입력해주세요.");
-            focusView = mEmailView;
+        // 닉네임의 유효성 검사
+        if (nickname.isEmpty()) {
+            mNicknameView.setError("이메일을 입력해주세요.");
+            focusView = mNicknameView;
             cancel = true;
         }
+
 
         // 이름의 유효성 검사
         if (name.isEmpty()) {
@@ -95,10 +101,11 @@ public class JoinActivity extends AppCompatActivity {
         if (cancel) {
             focusView.requestFocus();
         } else {
-            startJoin(new JoinData(name, email, password));
+            startJoin(new JoinData(id, password, nickname, name, "BLOOM", null));
             showProgress(true);
         }
     }
+
 
     private void startJoin(JoinData data) {
         service.userJoin(data).enqueue(new Callback<JoinResponse>() {
@@ -122,9 +129,7 @@ public class JoinActivity extends AppCompatActivity {
         });
     }
 
-    private boolean isEmailValid(String email) {
-        return email.contains("@");
-    }
+
 
     private boolean isPasswordValid(String password) {
         return password.length() >= 6;

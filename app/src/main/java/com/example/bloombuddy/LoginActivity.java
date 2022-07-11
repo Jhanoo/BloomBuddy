@@ -9,12 +9,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.bloombuddy.form.LoginData;
+import com.example.bloombuddy.form.LoginResponse;
+import com.example.bloombuddy.network.RetrofitClient;
+import com.example.bloombuddy.network.ServiceApi;
 import com.kakao.sdk.auth.AuthApiClient;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -34,6 +42,10 @@ import com.navercorp.nid.oauth.OAuthLoginCallback;
 import com.navercorp.nid.profile.NidProfileCallback;
 import com.navercorp.nid.profile.data.NidProfileResponse;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Google Sign In API와 호출할 구글 로그인 클라이언트
@@ -47,10 +59,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private ImageButton kakaoLoginBtn;
     private ImageButton naverLoginBtn;
     private NaverIdLoginSDK naverIdLoginSDK;
-
+    private Button createNewBtn;
+    private AutoCompleteTextView mIDView;
+    private EditText mPasswordView;
+    private Button mLoginButton;
+    private ServiceApi service;
+    private ProgressBar mProgressView;
     private String userName;
     private String userProfileUrl;
     private String userId;
+    private String joinId;
+    private String api_token;
 
     private static int REQUEST_CODE_LOGOUT = 99;
 
@@ -75,19 +94,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         googleLoginSIBtn = findViewById(R.id.googleLoginBtn);
         logoutBtn = findViewById(R.id.logoutBtn);
+        createNewBtn = findViewById(R.id.create_account_button);
+        mIDView = (AutoCompleteTextView) findViewById(R.id.login_id);
+        mPasswordView = (EditText) findViewById(R.id.login_password);
+        mLoginButton = (Button) findViewById(R.id.login_button);
+        mProgressView = (ProgressBar) findViewById(R.id.login_progress);
 
         kakaoLoginBtn.setOnClickListener(this);
         googleLoginSIBtn.setOnClickListener(this);
         logoutBtn.setOnClickListener(this);
         naverLoginBtn.setOnClickListener(this);
+        createNewBtn.setOnClickListener(this);
+        mLoginButton.setOnClickListener(this);
 
+        service = RetrofitClient.getClient().create(ServiceApi.class);
         TextView textView = (TextView) googleLoginSIBtn.getChildAt(0);
         textView.setText("구글 계정으로 로그인");
         googleLoginSIBtn.setSize(SignInButton.SIZE_WIDE);
 
         Button btn = findViewById(R.id.btn0);
         btn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, MapActivity.class);
             intent.putExtra("profile", userProfileUrl);
             startActivity(intent);
         });
@@ -117,6 +144,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // 앱에 필요한 사용자 데이터를 요청하도록 로그인 옵션을 설정한다.
         // DEFAULT_SIGN_IN parameter는 유저의 ID와 기본적인 프로필 정보를 요청하는데 사용된다.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail() // email addresses도 요청함
                 .build();
 
@@ -131,6 +159,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             userName = gsa.getDisplayName();
             userId = gsa.getId();
             userProfileUrl = "" + gsa.getPhotoUrl();
+            joinId = "G" + userName;
             setUserProfile();
 
             startMapActivity("google");
@@ -143,6 +172,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.create_account_button:
+                Intent intent = new Intent(LoginActivity.this, JoinActivity.class);
+                startActivity(intent);
+                break;
+
+            case R.id.login_button:
+                attemptLogin();
+                break;
+
             case R.id.googleLoginBtn:
                 googleLogin();
                 break;
@@ -175,7 +213,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void startMapActivity(String platform) {
-        Intent intent = new Intent(this, MapActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("userData", new String[]{platform, userId, userName, userProfileUrl});
 
         startActivityForResult(intent, REQUEST_CODE_LOGOUT);
@@ -197,6 +235,75 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private boolean isPasswordValid(String password) {
+        return password.length() >= 6;
+    }
+
+    public void attemptLogin(){
+        mIDView.setError(null);
+        mPasswordView.setError(null);
+
+        String userid = mIDView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusView = null;
+
+        // 패스워드의 유효성 검사
+        if (password.isEmpty()) {
+            mPasswordView.setError("비밀번호를 입력해주세요.");
+            focusView = mPasswordView;
+            cancel = true;
+        } else if (!isPasswordValid(password)) {
+            mPasswordView.setError("6자 이상의 비밀번호를 입력해주세요.");
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // id의 유효성 검사
+        if (userid.isEmpty()) {
+            mIDView.setError("ID를 입력해주세요.");
+            focusView = mIDView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            focusView.requestFocus();
+        } else {
+            startLogin(new LoginData(userid, password, null,"BLOOM", null));
+            showProgress(true);
+        }
+    }
+
+    private void startLogin(LoginData data){
+        service.userLogin(data).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                LoginResponse result = response.body();
+                Toast.makeText(LoginActivity.this, result.getMessage(), Toast.LENGTH_SHORT).show();
+                if(result.getCode()==327){
+                    sendProfileImage();
+                }
+                showProgress(false);
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                Toast.makeText(LoginActivity.this, "로그인 에러 발생", Toast.LENGTH_SHORT).show();
+                Log.e("로그인 에러 발생", t.getMessage());
+                showProgress(false);
+            }
+        });
+    }
+
+    private void sendProfileImage(){
+        //service.sendImg(data).enqueue(new Callback<>())
+    }
+
+    private void showProgress(boolean show) {
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
     public String[] getUserProfile() {
         return new String[]{userId, userName, userProfileUrl};
     }
@@ -208,6 +315,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.e(TAG, "로그인 실패", error);
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.getAccessToken());
+                api_token = oAuthToken.getAccessToken();
                 kakaoGetUserInfo();
             }
             return null;
@@ -225,6 +333,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.e(TAG, "로그인 실패", error);
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.getAccessToken());
+                api_token = oAuthToken.getAccessToken();
                 kakaoGetUserInfo();
             }
             return null;
@@ -248,6 +357,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 userName = kakaoUser.getNickname();
                 userProfileUrl = kakaoUser.getProfileImageUrl();
                 userId = "" + user.getId();
+                joinId = "K" + userName;
+                startLogin(new LoginData(joinId,null,userName,"KAKAO",api_token));
                 setUserProfile();
                 startMapActivity("kakao");
             }
@@ -265,11 +376,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String googleUserName = acct.getDisplayName();
                 String googleUserId = acct.getId();
                 Uri googleUserProfile = acct.getPhotoUrl();
+                String Idtoken = "";
+                //String Idtoken = acct.getIdToken();
                 userName = googleUserName;
                 if (googleUserProfile != null)
                     userProfileUrl = "" + googleUserProfile;
                 userId = googleUserId;
-
+                joinId = "G"+ userName;
+                startLogin(new LoginData(joinId,null,userName,"GOOGLE",Idtoken));
                 setUserProfile();
                 startMapActivity("google");
 
@@ -325,6 +439,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             userId = null;
             userName = null;
             userProfileUrl = null;
+            joinId = null;
             setUserProfile();
         }
     }
@@ -336,11 +451,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String naverUserName = nidProfileResponse.getProfile().getName();
                 String naverUserId = nidProfileResponse.getProfile().getId();
                 String naverUserProfile = nidProfileResponse.getProfile().getProfileImage();
-
+                String naverToken = naverIdLoginSDK.getAccessToken();
                 userName = naverUserName;
                 userProfileUrl = naverUserProfile;
                 userId = naverUserId;
-
+                joinId = "N" + userName;
+                startLogin(new LoginData(joinId,null,userName,"NAVER",naverToken));
                 setUserProfile();
                 startMapActivity("naver");
                 Log.d("naver login", "naver login success");

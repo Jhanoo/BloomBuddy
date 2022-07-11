@@ -7,15 +7,14 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import com.example.bloombuddy.databinding.ActivityMainBinding
+import com.example.bloombuddy.databinding.ActivityMapBinding
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
 import com.naver.maps.map.*
 import com.naver.maps.map.util.FusedLocationSource
-import com.naver.maps.map.widget.ZoomControlView
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
-    private lateinit var binding: ActivityMainBinding
+class MapActivity : AppCompatActivity(), OnMapReadyCallback {
+    private lateinit var binding: ActivityMapBinding
     private lateinit var mapView: MapView
     private lateinit var locationSource: FusedLocationSource
     private lateinit var naverMap: NaverMap
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMapBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
@@ -92,7 +91,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                     override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
                         Toast.makeText(
-                            this@MainActivity,
+                            this@MapActivity,
                             "위치 권한 허용을 하지 않으면 서비스를 이용할 수 없습니다.",
                             Toast.LENGTH_SHORT
                         )

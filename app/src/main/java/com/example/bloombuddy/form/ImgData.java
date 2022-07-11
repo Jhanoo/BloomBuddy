@@ -2,12 +2,9 @@ package com.example.bloombuddy.form;
 
 import com.google.gson.annotations.SerializedName;
 
-public class JoinData {
+public class ImgData {
     @SerializedName("userid")
     private String userid;
-
-    @SerializedName("userPwd")
-    private String userPwd;
 
     @SerializedName("nickname")
     private String nickname;
@@ -21,10 +18,9 @@ public class JoinData {
     @SerializedName("apiToken")
     private String apiToken;
 
-    public JoinData(String userid, String userPwd, String nickname, String username, String apiType, String apiToken) {
+    public ImgData(String userid, String nickname, String username, String apiType, String apiToken) {
         this.userid = userid;
         this.nickname = nickname;
-        this.userPwd = userPwd;
         this.username = username;
         this.apiType = apiType;
         this.apiToken = apiToken;
