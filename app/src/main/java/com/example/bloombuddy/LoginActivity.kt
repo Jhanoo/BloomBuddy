@@ -132,7 +132,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (gsa != null && gsa.id != null) {
             userName = gsa.displayName
             userId = gsa.id
-            userProfileUrl = "" + gsa.photoUrl
+            userProfileUrl = if ("" + gsa.photoUrl == "null") null else ("" + gsa.photoUrl)
             joinId = "G$userName"
             startMenuActivity("google")
         }
@@ -154,7 +154,14 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 else
                     kakaoAccountLogin()
             R.id.naverLoginBtn -> startNaverLogin()
-
+//            R.id.logoutBtn -> {
+//                kakaoLogout()
+//                naverLogout()
+//                googleLogout()
+//                userId = null
+//                userName = null
+//                userProfileUrl = null
+//            }
             else -> {}
         }
     }
@@ -220,7 +227,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val kakaoUserAccount = user.kakaoAccount
                 val kakaoUser = kakaoUserAccount?.profile
                 userName = kakaoUser?.nickname
-                userProfileUrl = kakaoUser?.profileImageUrl
+                userProfileUrl = kakaoUser?.thumbnailImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
                 startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
@@ -297,12 +304,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     val naverUserName = nidProfileResponse.profile!!.name
                     val naverUserId = nidProfileResponse.profile!!.id
                     val naverUserProfile = nidProfileResponse.profile!!.profileImage
-                    val naverToken = naverIdLoginSDK.getAccessToken()
                     userName = naverUserName
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
-                    joinId = "N$userName"
-                    startLogin(LoginData(joinId, null, userName, "NAVER", naverToken))
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }

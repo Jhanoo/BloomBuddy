@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "199651375859",
+    "project_id": "bloombuddy-355816",
+    "storage_bucket": "bloombuddy-355816.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199651375859:android:4f02a0789f1b1338741586",
+        "android_client_info": {
+          "package_name": "com.example.bloombuddy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "199651375859-eb73n29qodkkt2n3jutkq2hg9tu6df8g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSP8Kg1-utad4_uM3JBPU9vycm2XZGmYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "199651375859-eb73n29qodkkt2n3jutkq2hg9tu6df8g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
