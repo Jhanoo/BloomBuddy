@@ -90,7 +90,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                         "토큰 정보 보기 성공 회원번호: ${accessTokenInfo.id} 만료시간: ${accessTokenInfo.expiresIn}초"
                     )
                     kakaoGetUserInfo()
-                    startMenuActivity("kakao")
+//                    startMenuActivity("kakao")
                 } else {
                     Log.d("token ok", "토큰 있음 근데 만료됨")
                 }
@@ -115,7 +115,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (gsa != null && gsa.id != null) {
             userName = gsa.displayName
             userId = gsa.id
-            userProfileUrl = "" + gsa.photoUrl
+            userProfileUrl = if ("" + gsa.photoUrl == "null") null else ("" + gsa.photoUrl)
+
             startMenuActivity("google")
         }
         naverIdLoginSDK = NaverIdLoginSDK
@@ -202,7 +203,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val kakaoUserAccount = user.kakaoAccount
                 val kakaoUser = kakaoUserAccount?.profile
                 userName = kakaoUser?.nickname
-                userProfileUrl = kakaoUser?.profileImageUrl
+                userProfileUrl = kakaoUser?.thumbnailImageUrl
                 userId = "" + user.id
                 startMenuActivity("kakao")
             }

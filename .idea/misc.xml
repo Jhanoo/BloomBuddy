@@ -18,6 +18,8 @@
         <entry key="app/src/main/res/layout/activity_map.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/layout/activity_menu.xml" value="0.37604166666666666" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1751953125000001" />
+        <entry key="app/src/main/res/layout/fragment_friend.xml" value="0.19479166666666667" />
+        <entry key="app/src/main/res/layout/fragment_info.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/layout/fragment_map.xml" value="0.37604166666666666" />
         <entry key="app/src/main/res/layout/fragment_map_view.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/menu/btm_navi_menu.xml" value="0.375" />
