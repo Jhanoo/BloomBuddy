@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.example.bloombuddy.databinding.ActivityMenuBinding
 import com.example.bloombuddy.menuFragment.FriendFragment
 import com.example.bloombuddy.menuFragment.InfoFragment
@@ -50,10 +51,11 @@ class MenuActivity : AppCompatActivity() {
         }
 
         mapFragment = MapFragment.newInstance(userData)
+        friendFragment = FriendFragment()
+        infoFragment = InfoFragment()
 
 
         initNavigationBar()
-
 
 
     }
@@ -61,19 +63,41 @@ class MenuActivity : AppCompatActivity() {
     private fun initNavigationBar() {
         btmNaviView = binding.bottomNavigationView
         menu = btmNaviView.menu
+
         btmNaviView.run {
             setOnItemSelectedListener { item ->
                 when (item.itemId) {
                     R.id.tab_map -> {
-                        supportFragmentManager.beginTransaction().replace(R.id.home_ly, mapFragment).commit()
+                        changeFragment(mapFragment)
+                        item.isChecked = true
+                        view.setPadding(
+                            0,
+                            0,
+                            0,
+                            context.navigationHeight()
+                        )
                         true
                     }
                     R.id.tab_friend -> {
-                        supportFragmentManager.beginTransaction().replace(R.id.home_ly, friendFragment).commit()
+                        changeFragment(friendFragment)
+                        item.isChecked = true
+                        view.setPadding(
+                            0,
+                            context.statusBarHeight(),
+                            0,
+                            context.navigationHeight()
+                        )
                         true
                     }
                     R.id.tab_info -> {
-                        supportFragmentManager.beginTransaction().replace(R.id.home_ly, infoFragment).commit()
+                        changeFragment(infoFragment)
+                        item.isChecked = true
+                        view.setPadding(
+                            0,
+                            context.statusBarHeight(),
+                            0,
+                            context.navigationHeight()
+                        )
                         true
                     }
                 }
@@ -83,4 +107,12 @@ class MenuActivity : AppCompatActivity() {
         }
     }
 
+
+
+    private fun changeFragment(fragment: Fragment) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.home_ly, fragment)
+            .commit()
+    }
 }
