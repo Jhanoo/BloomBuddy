@@ -122,8 +122,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onPause() {
         super.onPause()
-        if (hasPermission)
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onPause()
     }
 
@@ -134,15 +132,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onStop() {
         super.onStop()
-        if (hasPermission)
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onStop()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        if (hasPermission)
+        if (hasPermission) {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        }
         mapView.onDestroy()
     }
 
@@ -175,6 +172,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     fusedLocationProviderClient =
                         LocationServices.getFusedLocationProviderClient(context!!)
                     setUpdateLocationListener()
+                    hasPermission = true
                 }
 
                 override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
@@ -184,6 +182,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         Toast.LENGTH_SHORT
                     )
                         .show()
+                    hasPermission = false
                 }
 
             })
