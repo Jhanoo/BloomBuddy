@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.WindowCompat
 
@@ -33,3 +34,4 @@ fun Context.navigationHeight(): Int {
     return if (resourceId > 0) resources.getDimensionPixelSize(resourceId)
     else 0
 }
+

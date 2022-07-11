@@ -235,75 +235,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private boolean isPasswordValid(String password) {
-        return password.length() >= 6;
-    }
-
-    public void attemptLogin(){
-        mIDView.setError(null);
-        mPasswordView.setError(null);
-
-        String userid = mIDView.getText().toString();
-        String password = mPasswordView.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-
-        // 패스워드의 유효성 검사
-        if (password.isEmpty()) {
-            mPasswordView.setError("비밀번호를 입력해주세요.");
-            focusView = mPasswordView;
-            cancel = true;
-        } else if (!isPasswordValid(password)) {
-            mPasswordView.setError("6자 이상의 비밀번호를 입력해주세요.");
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        // id의 유효성 검사
-        if (userid.isEmpty()) {
-            mIDView.setError("ID를 입력해주세요.");
-            focusView = mIDView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            focusView.requestFocus();
-        } else {
-            startLogin(new LoginData(userid, password, null,"BLOOM", null));
-            showProgress(true);
-        }
-    }
-
-    private void startLogin(LoginData data){
-        service.userLogin(data).enqueue(new Callback<LoginResponse>() {
-            @Override
-            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                LoginResponse result = response.body();
-                Toast.makeText(LoginActivity.this, result.getMessage(), Toast.LENGTH_SHORT).show();
-                if(result.getCode()==327){
-                    sendProfileImage();
-                }
-                showProgress(false);
-            }
-
-            @Override
-            public void onFailure(Call<LoginResponse> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "로그인 에러 발생", Toast.LENGTH_SHORT).show();
-                Log.e("로그인 에러 발생", t.getMessage());
-                showProgress(false);
-            }
-        });
-    }
-
-    private void sendProfileImage(){
-        //service.sendImg(data).enqueue(new Callback<>())
-    }
-
-    private void showProgress(boolean show) {
-        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-    }
-
     public String[] getUserProfile() {
         return new String[]{userId, userName, userProfileUrl};
     }
@@ -315,7 +246,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.e(TAG, "로그인 실패", error);
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.getAccessToken());
-                api_token = oAuthToken.getAccessToken();
                 kakaoGetUserInfo();
             }
             return null;
@@ -333,7 +263,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.e(TAG, "로그인 실패", error);
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.getAccessToken());
-                api_token = oAuthToken.getAccessToken();
                 kakaoGetUserInfo();
             }
             return null;
@@ -357,8 +286,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 userName = kakaoUser.getNickname();
                 userProfileUrl = kakaoUser.getProfileImageUrl();
                 userId = "" + user.getId();
-                joinId = "K" + userName;
-                startLogin(new LoginData(joinId,null,userName,"KAKAO",api_token));
                 setUserProfile();
                 startMapActivity("kakao");
             }
@@ -376,14 +303,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String googleUserName = acct.getDisplayName();
                 String googleUserId = acct.getId();
                 Uri googleUserProfile = acct.getPhotoUrl();
-                String Idtoken = "";
-                //String Idtoken = acct.getIdToken();
                 userName = googleUserName;
                 if (googleUserProfile != null)
                     userProfileUrl = "" + googleUserProfile;
                 userId = googleUserId;
-                joinId = "G"+ userName;
-                startLogin(new LoginData(joinId,null,userName,"GOOGLE",Idtoken));
+
                 setUserProfile();
                 startMapActivity("google");
 
@@ -439,7 +363,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             userId = null;
             userName = null;
             userProfileUrl = null;
-            joinId = null;
             setUserProfile();
         }
     }
@@ -451,12 +374,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String naverUserName = nidProfileResponse.getProfile().getName();
                 String naverUserId = nidProfileResponse.getProfile().getId();
                 String naverUserProfile = nidProfileResponse.getProfile().getProfileImage();
-                String naverToken = naverIdLoginSDK.getAccessToken();
+
                 userName = naverUserName;
                 userProfileUrl = naverUserProfile;
                 userId = naverUserId;
-                joinId = "N" + userName;
-                startLogin(new LoginData(joinId,null,userName,"NAVER",naverToken));
+
                 setUserProfile();
                 startMapActivity("naver");
                 Log.d("naver login", "naver login success");
