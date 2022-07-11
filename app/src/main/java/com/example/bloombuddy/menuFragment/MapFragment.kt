@@ -121,9 +121,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onPause() {
         super.onPause()
-        mapView.onPause()
         if (hasPermission)
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        mapView.onPause()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -133,11 +133,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onStop() {
         super.onStop()
+        if (hasPermission)
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onStop()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        if (hasPermission)
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onDestroy()
     }
 
