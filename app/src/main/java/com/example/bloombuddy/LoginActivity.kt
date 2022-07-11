@@ -132,7 +132,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (gsa != null && gsa.id != null) {
             userName = gsa.displayName
             userId = gsa.id
-            userProfileUrl = "" + gsa.photoUrl
+            userProfileUrl = if ("" + gsa.photoUrl == "null") null else ("" + gsa.photoUrl)
             joinId = "G$userName"
             startMenuActivity("google")
         }
@@ -154,7 +154,14 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 else
                     kakaoAccountLogin()
             R.id.naverLoginBtn -> startNaverLogin()
-
+//            R.id.logoutBtn -> {
+//                kakaoLogout()
+//                naverLogout()
+//                googleLogout()
+//                userId = null
+//                userName = null
+//                userProfileUrl = null
+//            }
             else -> {}
         }
     }
@@ -223,7 +230,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO"))
+                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
                 startMenuActivity("kakao")
             }
         }
@@ -241,7 +248,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
+                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {

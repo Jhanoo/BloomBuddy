@@ -54,6 +54,9 @@ class MenuActivity : AppCompatActivity() {
         friendFragment = FriendFragment()
         infoFragment = InfoFragment()
 
+        supportFragmentManager.beginTransaction().replace(R.id.home_ly,mapFragment).commit()
+
+
 
         initNavigationBar()
 
@@ -66,16 +69,37 @@ class MenuActivity : AppCompatActivity() {
 
         btmNaviView.run {
             setOnItemSelectedListener { item ->
+                item.isChecked = true
+
                 when (item.itemId) {
                     R.id.tab_map -> {
-                        changeFragment(mapFragment)
-                        item.isChecked = true
-                        view.setPadding(0, 0, 0, context.navigationHeight())
+                        if(mapFragment == null){
+                            mapFragment = MapFragment.newInstance(userData)
+                            supportFragmentManager.beginTransaction().add(R.id.home_ly, mapFragment).commit()
+                        }
+
+                        if(mapFragment != null) supportFragmentManager.beginTransaction().show(mapFragment).commit()
+                        if(friendFragment != null) supportFragmentManager.beginTransaction().hide(friendFragment).commit()
+                        if(infoFragment != null) supportFragmentManager.beginTransaction().hide(infoFragment).commit()
+
+                        view.setPadding(
+                            0,
+                            0,
+                            0,
+                            context.navigationHeight()
+                        )
                         true
                     }
                     R.id.tab_friend -> {
-                        changeFragment(friendFragment)
-                        item.isChecked = true
+                        if(friendFragment == null){
+                            friendFragment = FriendFragment()
+                            supportFragmentManager.beginTransaction().add(R.id.home_ly, friendFragment).commit()
+                        }
+
+                        if(mapFragment != null) supportFragmentManager.beginTransaction().hide(mapFragment).commit()
+                        if(friendFragment != null) supportFragmentManager.beginTransaction().show(friendFragment).commit()
+                        if(infoFragment != null) supportFragmentManager.beginTransaction().hide(infoFragment).commit()
+
                         view.setPadding(
                             0,
                             context.statusBarHeight(),
@@ -85,8 +109,15 @@ class MenuActivity : AppCompatActivity() {
                         true
                     }
                     R.id.tab_info -> {
-                        changeFragment(infoFragment)
-                        item.isChecked = true
+                        if(infoFragment == null){
+                            infoFragment = InfoFragment()
+                            supportFragmentManager.beginTransaction().add(R.id.home_ly, infoFragment).commit()
+                        }
+
+                        if(mapFragment != null) supportFragmentManager.beginTransaction().hide(mapFragment).commit()
+                        if(friendFragment != null) supportFragmentManager.beginTransaction().hide(friendFragment).commit()
+                        if(infoFragment != null) supportFragmentManager.beginTransaction().show(infoFragment).commit()
+
                         view.setPadding(
                             0,
                             context.statusBarHeight(),
@@ -98,16 +129,7 @@ class MenuActivity : AppCompatActivity() {
                 }
                 false
             }
-            selectedItemId = R.id.tab_map
         }
     }
 
-
-
-    private fun changeFragment(fragment: Fragment) {
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.home_ly, fragment)
-            .commit()
-    }
 }

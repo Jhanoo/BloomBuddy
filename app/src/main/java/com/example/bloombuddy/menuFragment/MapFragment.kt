@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.core.app.ActivityCompat
 import com.example.bloombuddy.R
 import com.google.android.gms.location.*
@@ -121,8 +122,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onPause() {
         super.onPause()
-        if (hasPermission)
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onPause()
     }
 
@@ -133,15 +132,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onStop() {
         super.onStop()
-        if (hasPermission)
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         mapView.onStop()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        if (hasPermission)
+        if (hasPermission) {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        }
         mapView.onDestroy()
     }
 
@@ -150,7 +148,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.onLowMemory()
     }
 
-
+    @UiThread
     override fun onMapReady(naverMap: NaverMap) {
         this.naverMap = naverMap
         uiSettings = naverMap.uiSettings
@@ -174,6 +172,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     fusedLocationProviderClient =
                         LocationServices.getFusedLocationProviderClient(context!!)
                     setUpdateLocationListener()
+                    hasPermission = true
                 }
 
                 override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
@@ -183,6 +182,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         Toast.LENGTH_SHORT
                     )
                         .show()
+                    hasPermission = false
                 }
 
             })
@@ -260,7 +260,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         marker.height = 150
 
         if (bitmap == null) {
-            marker.icon = OverlayImage.fromResource(R.drawable.gps)
+            marker.icon = OverlayImage.fromResource(R.drawable.user)
         } else {
             marker.icon = OverlayImage.fromBitmap(bitmap!!)
             Log.d("userData", "bitmap set")
@@ -291,18 +291,40 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun getRoundedCornerBitmap(bitmap: Bitmap): Bitmap? {
-        val output = Bitmap.createBitmap(
-            bitmap.width,
-            bitmap.height, Bitmap.Config.ARGB_8888
-        )
+        var output: Bitmap = if (bitmap.width > bitmap.height) {
+            Bitmap.createBitmap(
+                bitmap,
+                (bitmap.width - bitmap.height) / 2,
+                0,
+                bitmap.height,
+                bitmap.height
+            )
+        } else if (bitmap.width < bitmap.height) {
+            var bit: Bitmap = Bitmap.createBitmap(
+                bitmap,
+                0,
+                (bitmap.height - bitmap.width) / 2,
+                bitmap.width,
+                bitmap.width
+            )
+            Bitmap.createBitmap(
+                bit.width,
+                bit.height, Bitmap.Config.ARGB_8888
+            )
+        } else {
+            Bitmap.createBitmap(
+                bitmap.width,
+                bitmap.height, Bitmap.Config.ARGB_8888
+            )
+        }
         val canvas = Canvas(output)
         val color = -0xbdbdbe
         val paint = Paint()
-        val rect = Rect(0, 0, bitmap.width, bitmap.height)
+        val rect = Rect(0, 0, output.width, output.height)
         paint.isAntiAlias = true
         canvas.drawARGB(0, 0, 0, 0)
         paint.color = color
-        canvas.drawCircle(bitmap.width/2f, bitmap.height/2f, bitmap.width/2f, paint)
+        canvas.drawCircle(output.width / 2f, output.height / 2f, output.width / 2f, paint)
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, rect, rect, paint)
         return output
