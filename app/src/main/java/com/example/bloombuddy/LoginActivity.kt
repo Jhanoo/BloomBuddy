@@ -7,6 +7,10 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.bloombuddy.databinding.ActivityLoginBinding
+import com.example.bloombuddy.form.LoginData
+import com.example.bloombuddy.form.LoginResponse
+import com.example.bloombuddy.network.RetrofitClient
+import com.example.bloombuddy.network.ServiceApi
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -23,6 +27,9 @@ import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
 import com.navercorp.nid.profile.NidProfileCallback
 import com.navercorp.nid.profile.data.NidProfileResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class LoginActivity : AppCompatActivity(), View.OnClickListener {
@@ -36,13 +43,18 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var kakaoLoginBtn: ImageButton
     private lateinit var naverLoginBtn: ImageButton
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var profileImgView: ImageView
-    private lateinit var nameTv: TextView
-    private lateinit var logoutBtn: Button
 
     private var userProfileUrl: String? = null
     private var userName: String? = null
     private var userId: String? = null
+    private var joinId: String? = null
+    private lateinit var service: ServiceApi
+    private lateinit var mProgressView: ProgressBar
+    private lateinit var createNewBtn: Button
+    private lateinit var mIDView: AutoCompleteTextView
+    private lateinit var mPasswordView: EditText
+    private lateinit var mLoginButton: Button
+    private lateinit var api_token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,22 +75,26 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
 //        String keyHash = Utility.INSTANCE.getKeyHash(this);
 //        Log.d("keyhash", keyHash);
         kakaoLoginBtn = binding.kakaoLoginBtn
-        profileImgView = binding.profileImgView
-        nameTv = binding.nameTv
         naverLoginBtn = binding.naverLoginBtn
         googleLoginSIBtn = binding.googleLoginBtn
-        logoutBtn = binding.logoutBtn
+        createNewBtn = binding.createAccountButton
+        mIDView = binding.loginId
+        mPasswordView = binding.loginPassword
+        mLoginButton = binding.loginButton
+        mProgressView = binding.loginProgress
 
         kakaoLoginBtn.setOnClickListener(this)
         naverLoginBtn.setOnClickListener(this)
         googleLoginSIBtn.setOnClickListener(this)
-        logoutBtn.setOnClickListener(this)
+        createNewBtn.setOnClickListener(this)
+        mLoginButton.setOnClickListener(this)
+        service = RetrofitClient.getClient().create(ServiceApi::class.java)
 
         val textView = googleLoginSIBtn.getChildAt(0) as TextView
         textView.text = "구글 계정으로 로그인"
         googleLoginSIBtn.setSize(SignInButton.SIZE_WIDE)
 
-
+/*
         // kakao
         if (AuthApiClient.instance.hasToken()) {
             UserApiClient.instance.accessTokenInfo { accessTokenInfo: AccessTokenInfo?, error: Throwable? ->
@@ -89,8 +105,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                         "token ok",
                         "토큰 정보 보기 성공 회원번호: ${accessTokenInfo.id} 만료시간: ${accessTokenInfo.expiresIn}초"
                     )
+                    api_token = accessTokenInfo.
                     kakaoGetUserInfo()
-//                    startMenuActivity("kakao")
+                    startMenuActivity("kakao")
                 } else {
                     Log.d("token ok", "토큰 있음 근데 만료됨")
                 }
@@ -98,7 +115,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         } else {
             // 토큰 없을 때 -> 로그인 창
         }
-
+*/
         // 앱에 필요한 사용자 데이터를 요청하도록 로그인 옵션을 설정한다.
         // DEFAULT_SIGN_IN parameter는 유저의 ID와 기본적인 프로필 정보를 요청하는데 사용된다.
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -116,7 +133,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             userName = gsa.displayName
             userId = gsa.id
             userProfileUrl = if ("" + gsa.photoUrl == "null") null else ("" + gsa.photoUrl)
-
+            joinId = "G$userName"
             startMenuActivity("google")
         }
         naverIdLoginSDK = NaverIdLoginSDK
@@ -125,6 +142,11 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View) {
         when (v.id) {
+            R.id.create_account_button-> {
+                val intent = Intent(this@LoginActivity, JoinActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.login_button -> attemptLogin()
             R.id.googleLoginBtn -> googleLogin()
             R.id.kakaoLoginBtn ->
                 if (UserApiClient.instance.isKakaoTalkLoginAvailable(this@LoginActivity))
@@ -132,14 +154,14 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 else
                     kakaoAccountLogin()
             R.id.naverLoginBtn -> startNaverLogin()
-            R.id.logoutBtn -> {
-                kakaoLogout()
-                naverLogout()
-                googleLogout()
-                userId = null
-                userName = null
-                userProfileUrl = null
-            }
+//            R.id.logoutBtn -> {
+//                kakaoLogout()
+//                naverLogout()
+//                googleLogout()
+//                userId = null
+//                userName = null
+//                userProfileUrl = null
+//            }
             else -> {}
         }
     }
@@ -158,6 +180,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.accessToken)
                 kakaoGetUserInfo()
+                api_token = oAuthToken.accessToken
             }
             null
         }
@@ -182,6 +205,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             } else if (oAuthToken != null) {
                 Log.i(TAG, "로그인 성공(토큰) : " + oAuthToken.accessToken)
                 kakaoGetUserInfo()
+                api_token = oAuthToken.accessToken
             }
             null
         }
@@ -205,6 +229,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userName = kakaoUser?.nickname
                 userProfileUrl = kakaoUser?.thumbnailImageUrl
                 userId = "" + user.id
+                joinId = "K$userName"
+                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
                 startMenuActivity("kakao")
             }
         }
@@ -221,6 +247,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userName = googleUserName
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
+                joinId = "G$userName"
+                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -310,6 +338,71 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun naverLogout() {
         naverIdLoginSDK.logout()
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        return password.length >= 6
+    }
+
+    fun attemptLogin() {
+        mIDView.error = null
+        mPasswordView.error = null
+        val userid = mIDView.text.toString()
+        val password = mPasswordView.text.toString()
+        var cancel = false
+        var focusView: View? = null
+
+        // 패스워드의 유효성 검사
+        if (password.isEmpty()) {
+            mPasswordView.error = "비밀번호를 입력해주세요."
+            focusView = mPasswordView
+            cancel = true
+        } else if (!isPasswordValid(password)) {
+            mPasswordView.error = "6자 이상의 비밀번호를 입력해주세요."
+            focusView = mPasswordView
+            cancel = true
+        }
+
+        // id의 유효성 검사
+        if (userid.isEmpty()) {
+            mIDView.error = "ID를 입력해주세요."
+            focusView = mIDView
+            cancel = true
+        }
+        if (cancel) {
+            focusView!!.requestFocus()
+        } else {
+            startLogin(LoginData(userid, password, null, "BLOOM", null))
+            showProgress(true)
+        }
+    }
+
+    private fun startLogin(data: LoginData) {
+        service.userLogin(data).enqueue(object : Callback<LoginResponse?> {
+            override fun onResponse(call: Call<LoginResponse?>, response: Response<LoginResponse?>) {
+                val result: LoginResponse? = response.body()
+                Toast.makeText(this@LoginActivity, result!!.message, Toast.LENGTH_SHORT).show()
+                if (result.code == 327) {
+                    sendProfileImage()
+                }
+                showProgress(false)
+            }
+
+            override fun onFailure(call: Call<LoginResponse?>?, t: Throwable) {
+                Toast.makeText(this@LoginActivity, "로그인 에러 발생", Toast.LENGTH_SHORT).show()
+                Log.e("로그인 에러 발생", t.message!!)
+                showProgress(false)
+            }
+
+        })
+    }
+
+    private fun sendProfileImage() {
+        //service.sendImg(data).enqueue(new Callback<>())
+    }
+
+    private fun showProgress(show: Boolean) {
+        mProgressView.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     override fun onBackPressed() {

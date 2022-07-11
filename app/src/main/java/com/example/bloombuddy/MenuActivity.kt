@@ -29,7 +29,6 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var mapFragment: MapFragment
     private lateinit var friendFragment: FriendFragment
     private lateinit var infoFragment: InfoFragment
-    private lateinit var tmpFragment: Fragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +57,6 @@ class MenuActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.home_ly,mapFragment).commit()
 
 
-        tmpFragment = mapFragment
 
         initNavigationBar()
 
@@ -84,8 +82,6 @@ class MenuActivity : AppCompatActivity() {
                         if(friendFragment != null) supportFragmentManager.beginTransaction().hide(friendFragment).commit()
                         if(infoFragment != null) supportFragmentManager.beginTransaction().hide(infoFragment).commit()
 
-//                        changeFragment(tmpFragment, mapFragment)
-//                        tmpFragment = mapFragment
                         view.setPadding(
                             0,
                             0,
@@ -104,8 +100,6 @@ class MenuActivity : AppCompatActivity() {
                         if(friendFragment != null) supportFragmentManager.beginTransaction().show(friendFragment).commit()
                         if(infoFragment != null) supportFragmentManager.beginTransaction().hide(infoFragment).commit()
 
-//                        changeFragment(tmpFragment, friendFragment)
-//                        tmpFragment = friendFragment
                         view.setPadding(
                             0,
                             context.statusBarHeight(),
@@ -124,8 +118,6 @@ class MenuActivity : AppCompatActivity() {
                         if(friendFragment != null) supportFragmentManager.beginTransaction().hide(friendFragment).commit()
                         if(infoFragment != null) supportFragmentManager.beginTransaction().show(infoFragment).commit()
 
-//                        changeFragment(tmpFragment,infoFragment)
-//                        tmpFragment = infoFragment
                         view.setPadding(
                             0,
                             context.statusBarHeight(),
@@ -137,23 +129,7 @@ class MenuActivity : AppCompatActivity() {
                 }
                 false
             }
-//            selectedItemId = R.id.tab_map
         }
     }
 
-
-
-    private fun changeFragment(from: Fragment, to: Fragment) {
-        supportFragmentManager.beginTransaction().detach(from)
-            .attach(to)
-            .commit()
-//        supportFragmentManager.beginTransaction().attach(to)
-
-//        supportFragmentManager
-//            .beginTransaction()
-//            .add(R.id.home_ly, fragment)
-//            .replace(R.id.home_ly, fragment)
-//            .addToBackStack(null)
-//            .commit()
-    }
 }
