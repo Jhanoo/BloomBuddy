@@ -223,7 +223,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
+                startLogin(LoginData(joinId, null, userName, "KAKAO"))
                 startMenuActivity("kakao")
             }
         }
@@ -241,7 +241,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
+                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -302,7 +302,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
                     joinId = "N$userName"
-                    startLogin(LoginData(joinId, null, userName, "NAVER", naverToken))
+                    startLogin(LoginData(joinId, null, userName, "NAVER"))
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }
@@ -368,7 +368,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (cancel) {
             focusView!!.requestFocus()
         } else {
-            startLogin(LoginData(userid, password, null, "BLOOM", null))
+            startLogin(LoginData(userid, password, null, "BLOOM"))
             showProgress(true)
         }
     }
