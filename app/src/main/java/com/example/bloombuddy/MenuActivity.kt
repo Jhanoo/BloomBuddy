@@ -2,15 +2,13 @@ package com.example.bloombuddy
 
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import com.example.bloombuddy.databinding.ActivityMenuBinding
-import com.google.android.material.bottomnavigation.BottomNavigationItemView
+import com.example.bloombuddy.menuFragment.FriendFragment
+import com.example.bloombuddy.menuFragment.InfoFragment
+import com.example.bloombuddy.menuFragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationBarView
-import kotlinx.android.synthetic.main.activity_menu.*
 
 class MenuActivity : AppCompatActivity() {
 
@@ -28,6 +26,8 @@ class MenuActivity : AppCompatActivity() {
     lateinit var userData: Array<String>
 
     private lateinit var mapFragment: MapFragment
+    private lateinit var friendFragment: FriendFragment
+    private lateinit var infoFragment: InfoFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +51,7 @@ class MenuActivity : AppCompatActivity() {
 
         mapFragment = MapFragment.newInstance(userData)
 
+
         initNavigationBar()
 
 
@@ -68,11 +69,11 @@ class MenuActivity : AppCompatActivity() {
                         true
                     }
                     R.id.tab_friend -> {
-
+                        supportFragmentManager.beginTransaction().replace(R.id.home_ly, friendFragment).commit()
                         true
                     }
                     R.id.tab_info -> {
-
+                        supportFragmentManager.beginTransaction().replace(R.id.home_ly, infoFragment).commit()
                         true
                     }
                 }
