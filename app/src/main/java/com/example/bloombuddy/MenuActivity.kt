@@ -70,12 +70,7 @@ class MenuActivity : AppCompatActivity() {
                     R.id.tab_map -> {
                         changeFragment(mapFragment)
                         item.isChecked = true
-                        view.setPadding(
-                            0,
-                            0,
-                            0,
-                            context.navigationHeight()
-                        )
+                        view.setPadding(0, 0, 0, context.navigationHeight())
                         true
                     }
                     R.id.tab_friend -> {

@@ -3,25 +3,17 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="../../../../layout/custom_preview.xml" value="0.15617505995203837" />
+        <entry key="..\:/Users/user/AndroidStudioProjects/BloomBuddy/app/src/main/res/layout/activity_join.xml" value="0.14545454545454545" />
+        <entry key="..\:/Users/user/AndroidStudioProjects/BloomBuddy/app/src/main/res/layout/activity_login.xml" value="0.23802083333333332" />
+        <entry key="..\:/Users/user/AndroidStudioProjects/BloomBuddy/app/src/main/res/layout/activity_main.xml" value="0.4" />
+        <entry key="..\:/Users/user/AndroidStudioProjects/BloomBuddy/app/src/main/res/layout/activity_splash.xml" value="0.1984375" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1655" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.1655" />
-        <entry key="app/src/main/res/drawable/kakao_button_selected_effect.xml" value="0.1" />
-        <entry key="app/src/main/res/drawable/naver_button_selected_effect.xml" value="0.1545" />
-        <entry key="app/src/main/res/drawable/selector_menu_icon.xml" value="0.222" />
         <entry key="app/src/main/res/layout/activity2_main.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/layout/activity_kakao_auth_code_handler.xml" value="0.21822916666666667" />
         <entry key="app/src/main/res/layout/activity_kakao_login.xml" value="0.19479166666666667" />
-        <entry key="app/src/main/res/layout/activity_kotlin.xml" value="0.2803461710611979" />
-        <entry key="app/src/main/res/layout/activity_login.xml" value="0.298193359375" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.2081939697265625" />
-        <entry key="app/src/main/res/layout/activity_map.xml" value="0.19479166666666667" />
-        <entry key="app/src/main/res/layout/activity_menu.xml" value="0.37604166666666666" />
-        <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1751953125000001" />
-        <entry key="app/src/main/res/layout/fragment_map.xml" value="0.37604166666666666" />
-        <entry key="app/src/main/res/layout/fragment_map_view.xml" value="0.19479166666666667" />
-        <entry key="app/src/main/res/menu/btm_navi_menu.xml" value="0.375" />
-        <entry key="app/src/main/res/xml/network_security_config.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_login.xml" value="0.18072916666666666" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.2286712646484375" />
       </map>
     </option>
   </component>
