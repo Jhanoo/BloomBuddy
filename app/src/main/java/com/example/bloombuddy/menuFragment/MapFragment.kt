@@ -266,6 +266,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             Log.d("userData", "bitmap set")
         }
 
+        marker.setOnClickListener { o ->
+            Toast.makeText(context, "marker 클릭", Toast.LENGTH_SHORT).show()
+            true
+        }
         marker.map = naverMap
 
         myMarker = marker
