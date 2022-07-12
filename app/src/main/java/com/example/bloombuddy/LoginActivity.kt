@@ -18,10 +18,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
-import com.kakao.sdk.user.model.AccessTokenInfo
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
@@ -35,7 +33,6 @@ import retrofit2.Response
 class LoginActivity : AppCompatActivity(), View.OnClickListener {
     // Google Sign In API와 호출할 구글 로그인 클라이언트
     private var mGoogleSignInClient: GoogleSignInClient? = null
-    private val RC_GOOGLE_LOGIN = 123
 
     private lateinit var naverIdLoginSDK: NaverIdLoginSDK
 
@@ -94,28 +91,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         textView.text = "구글 계정으로 로그인"
         googleLoginSIBtn.setSize(SignInButton.SIZE_WIDE)
 
-/*
-        // kakao
-        if (AuthApiClient.instance.hasToken()) {
-            UserApiClient.instance.accessTokenInfo { accessTokenInfo: AccessTokenInfo?, error: Throwable? ->
-                if (error != null) {
-                    Log.d("token error", "토큰 없음")
-                } else if (accessTokenInfo != null) {
-                    Log.i(
-                        "token ok",
-                        "토큰 정보 보기 성공 회원번호: ${accessTokenInfo.id} 만료시간: ${accessTokenInfo.expiresIn}초"
-                    )
-                    api_token = accessTokenInfo.
-                    kakaoGetUserInfo()
-                    startMenuActivity("kakao")
-                } else {
-                    Log.d("token ok", "토큰 있음 근데 만료됨")
-                }
-            }
-        } else {
-            // 토큰 없을 때 -> 로그인 창
-        }
-*/
         // 앱에 필요한 사용자 데이터를 요청하도록 로그인 옵션을 설정한다.
         // DEFAULT_SIGN_IN parameter는 유저의 ID와 기본적인 프로필 정보를 요청하는데 사용된다.
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -125,17 +100,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         // 위에서 만든 GoogleSignInOptions을 사용해 GoogleSignInClient 객체를 만듬
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // 기존에 로그인 했던 계정을 확인한다.
-        val gsa = GoogleSignIn.getLastSignedInAccount(this)
-
-        // 로그인 되있는 경우 (토큰으로 로그인 처리)
-        if (gsa != null && gsa.id != null) {
-            userName = gsa.displayName
-            userId = gsa.id
-            userProfileUrl = if ("" + gsa.photoUrl == "null") null else ("" + gsa.photoUrl)
-            joinId = "G$userName"
-            startMenuActivity("google")
-        }
         naverIdLoginSDK = NaverIdLoginSDK
         naverIdLoginSDK.initialize(this, "hv_v8qfwCAtL8eMUrfPv", "nDD2xL5l4N", "BloomBuddy")
     }
@@ -170,6 +134,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         val intent = Intent(this, MenuActivity::class.java)
         intent.putExtra("userData", arrayOf(platform, userId, userName, userProfileUrl))
         startActivityForResult(intent, REQUEST_CODE_LOGOUT)
+        finish()
     }
 
     private fun kakaoLogin() {
@@ -227,10 +192,10 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val kakaoUserAccount = user.kakaoAccount
                 val kakaoUser = kakaoUserAccount?.profile
                 userName = kakaoUser?.nickname
-                userProfileUrl = kakaoUser?.thumbnailImageUrl
+                userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
+                startLogin(LoginData(joinId, null, userName, "KAKAO"))
                 startMenuActivity("kakao")
             }
         }
@@ -248,7 +213,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
+                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -304,9 +269,12 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     val naverUserName = nidProfileResponse.profile!!.name
                     val naverUserId = nidProfileResponse.profile!!.id
                     val naverUserProfile = nidProfileResponse.profile!!.profileImage
+                    val naverToken = naverIdLoginSDK.getAccessToken()
                     userName = naverUserName
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
+                    joinId = "N$userName"
+                    startLogin(LoginData(joinId, null, userName, "NAVER"))
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }
@@ -344,7 +312,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         return password.length >= 6
     }
 
-    fun attemptLogin() {
+    private fun attemptLogin() {
         mIDView.error = null
         mPasswordView.error = null
         val userid = mIDView.text.toString()
@@ -372,7 +340,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (cancel) {
             focusView!!.requestFocus()
         } else {
-            startLogin(LoginData(userid, password, null, "BLOOM", null))
+            startLogin(LoginData(userid, password, null, "BLOOM"))
             showProgress(true)
         }
     }
@@ -383,7 +351,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val result: LoginResponse? = response.body()
                 Toast.makeText(this@LoginActivity, result!!.message, Toast.LENGTH_SHORT).show()
                 if (result.code == 327) {
-                    sendProfileImage()
+                    //sendProfileImage()
                 }
                 showProgress(false)
             }
@@ -397,9 +365,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         })
     }
 
-    private fun sendProfileImage() {
-        //service.sendImg(data).enqueue(new Callback<>())
-    }
+//    private fun sendProfileImage() {
+//        service.sendImg(data).enqueue(new Callback<>())
+//    }
 
     private fun showProgress(show: Boolean) {
         mProgressView.visibility = if (show) View.VISIBLE else View.GONE
@@ -419,9 +387,10 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
         private const val REQUEST_CODE_LOGOUT = 99
+        private const val RC_GOOGLE_LOGIN = 123
 
-        const val FINISH_INTERVAL_TIME: Long = 2000;
-        var backPressedTime: Long = 0;
+        const val FINISH_INTERVAL_TIME: Long = 2000
+        var backPressedTime: Long = 0
     }
 
 

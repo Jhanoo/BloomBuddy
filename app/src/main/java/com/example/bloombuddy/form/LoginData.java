@@ -15,14 +15,11 @@ public class LoginData {
     @SerializedName("apiType")
     String apiType;
 
-    @SerializedName("apiToken")
-    private String apiToken;
 
-    public LoginData(String userid, String userPwd, String nickname, String apiType, String apiToken) {
+    public LoginData(String userid, String userPwd, String nickname, String apiType) {
         this.userid = userid;
         this.userPwd = userPwd;
         this.nickname = nickname;
         this.apiType = apiType;
-        this.apiToken = apiToken;
     }
 }

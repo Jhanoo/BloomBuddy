@@ -101,7 +101,7 @@ public class JoinActivity extends AppCompatActivity {
         if (cancel) {
             focusView.requestFocus();
         } else {
-            startJoin(new JoinData(id, password, nickname, name, "BLOOM", null));
+            startJoin(new JoinData(id, password, nickname, name, "BLOOM"));
             showProgress(true);
         }
     }

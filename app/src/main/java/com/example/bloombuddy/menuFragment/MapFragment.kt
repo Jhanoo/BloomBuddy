@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.core.app.ActivityCompat
 import com.example.bloombuddy.R
+import com.example.bloombuddy.form.MarkerData
 import com.google.android.gms.location.*
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
@@ -46,6 +47,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var naverMap: NaverMap
     private lateinit var uiSettings: UiSettings
     private lateinit var locationCallback: LocationCallback
+    private lateinit var locationRequest: LocationRequest
     private var myMarker: Marker? = null
     private var bitmap: Bitmap? = null
     private var hasPermission = false
@@ -54,6 +56,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var userProfileUrl: String? = null
     private var userId: String? = null
     private lateinit var platform: String
+
+    private var markerArr: ArrayList<MarkerData> = ArrayList()
+    private val defaultImage = OverlayImage.fromResource(R.drawable.user)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +103,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         locationSource =
             FusedLocationSource(this, LOCATION_PERMISSION_REQUEST_CODE)
 
+        locationRequest = LocationRequest.create()
+        locationRequest.run {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY //높은 정확도
+            interval = 1000 //1초에 한번씩 GPS 요청
+        }
+
         if (userProfileUrl != null) {
             CoroutineScope(Dispatchers.Main).launch {
                 bitmap = withContext(Dispatchers.IO) {
@@ -107,6 +118,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
         }
         checkPermissions()
+
+        markerArr.add(MarkerData("1", null, 36.3740953, 127.3656277))
+        markerArr.add(MarkerData("2", null, 36.3741953, 127.3658277))
+        markerArr.add(MarkerData("3", null, 36.3743953, 127.3655277))
+        markerArr.add(MarkerData("4", null, 36.3744953, 127.3659277))
+        markerArr.add(MarkerData("5", null, 36.3749953, 127.3661277))
+        markerArr.add(MarkerData("6", null, 36.3748953, 127.3648277))
     }
 
     override fun onStart() {
@@ -116,6 +134,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
+        if(hasPermission){
+            setUpdateLocationListener()
+        }
         mapView.onResume()
 
     }
@@ -161,7 +182,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         uiSettings.isCompassEnabled = false
 
         naverMap.mapType = NaverMap.MapType.Terrain
-
+        mapMarkers()
     }
 
     // 위치 권한 확인 및 요청
@@ -171,7 +192,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 override fun onPermissionGranted() {
                     fusedLocationProviderClient =
                         LocationServices.getFusedLocationProviderClient(context!!)
-                    setUpdateLocationListener()
+//                    setUpdateLocationListener()
+                    //location 요청 함수 호출 (locationRequest, locationCallback)
+                    locationCallback = object : LocationCallback() {
+                        override fun onLocationResult(locationResult: LocationResult?) {
+                            locationResult ?: return
+                            for ((i, location) in locationResult.locations.withIndex()) {
+                                Log.d("location: ", "${location.latitude}, ${location.longitude}")
+                                setLastLocation(location)
+                            }
+                        }
+                    }
+
                     hasPermission = true
                 }
 
@@ -223,23 +255,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         ) {
             return
         }
-        val locationRequest = LocationRequest.create()
-        locationRequest.run {
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY //높은 정확도
-            interval = 1000 //1초에 한번씩 GPS 요청
-        }
-
-        //location 요청 함수 호출 (locationRequest, locationCallback)
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for ((i, location) in locationResult.locations.withIndex()) {
-                    Log.d("location: ", "${location.latitude}, ${location.longitude}")
-                    setLastLocation(location)
-                }
-            }
-        }
-
 
         fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
@@ -260,7 +275,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         marker.height = 150
 
         if (bitmap == null) {
-            marker.icon = OverlayImage.fromResource(R.drawable.user)
+            marker.icon = defaultImage
         } else {
             marker.icon = OverlayImage.fromBitmap(bitmap!!)
             Log.d("userData", "bitmap set")
@@ -328,6 +343,37 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(bitmap, rect, rect, paint)
         return output
+    }
+
+    private fun mapMarkers(){
+        var marker: Marker
+        for(i in 0 until markerArr.size){
+            val loc = LatLng(markerArr[i].latitude, markerArr[i].longitude)
+            marker = Marker()
+            marker.position = loc
+            marker.width = 150
+            marker.height = 150
+            marker.tag = markerArr[i].userId
+
+            var profileBitmap: Bitmap? = null
+            if (markerArr[i].profileURL != null) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    profileBitmap = withContext(Dispatchers.IO) {
+                        ImageLoader.loadImage(markerArr[i].profileURL)
+                    }
+                    profileBitmap = getRoundedCornerBitmap(bitmap!!)
+                }
+            }
+
+            if (profileBitmap == null) {
+                marker.icon = defaultImage
+            } else {
+                marker.icon = OverlayImage.fromBitmap(profileBitmap!!)
+            }
+            marker.map = naverMap
+
+
+        }
     }
 
     companion object {
