@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/joinFrame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
@@ -8,63 +10,83 @@
     android:padding="20dp"
     tools:context="com.example.bloombuddy.JoinActivity">
 
-    <ScrollView
-        android:id="@+id/login_form"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/email_login_form"
+        <AutoCompleteTextView
+            android:id="@+id/join_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="20dp"
+            android:hint="아이디"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <AutoCompleteTextView
-                android:id="@+id/join_id"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="아이디"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/join_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:hint="비밀번호"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:singleLine="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/join_id" />
 
-            <EditText
-                android:id="@+id/join_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="비밀번호"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/join_nickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:hint="닉네임"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/join_password" />
 
-            <EditText
-                android:id="@+id/join_nickname"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="닉네임"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/join_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:hint="이름(본명)"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/join_nickname" />
 
-            <EditText
-                android:id="@+id/join_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="이름(본명)"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true" />
-
-            <Button
-                android:id="@+id/join_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="회원가입"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-    </ScrollView>
+        <Button
+            android:id="@+id/join_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="20dp"
+            android:text="회원가입"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/join_name" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar
         android:id="@+id/join_progress"

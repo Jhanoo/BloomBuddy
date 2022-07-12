@@ -6,11 +6,13 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.bloombuddy.network.RetrofitClient;
 import com.example.bloombuddy.network.ServiceApi;
@@ -34,6 +36,15 @@ public class JoinActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join);
+
+
+        // 상태바 투명하게
+        StatusBarKt.setStatusBarTransparent(this);
+        // 상태바 & 네비게이션바에 버튼이나 텍스트 등 화면구성요소 겹치지 않게 패딩
+        FrameLayout container = findViewById(R.id.joinFrame);
+        container.setPadding(0, StatusBarKt.statusBarHeight(getApplicationContext()), 0, StatusBarKt.navigationHeight(getApplicationContext()));
+
+
 
         mIdView = (AutoCompleteTextView) findViewById(R.id.join_id);
         mPasswordView = (EditText) findViewById(R.id.join_password);
