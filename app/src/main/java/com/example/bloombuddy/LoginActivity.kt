@@ -1,14 +1,28 @@
 package com.example.bloombuddy
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
+import android.media.MediaPlayer.create
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.example.bloombuddy.databinding.ActivityLoginBinding
+import com.example.bloombuddy.form.ImgResponse
+import com.example.bloombuddy.form.Locationdata
 import com.example.bloombuddy.form.LoginData
 import com.example.bloombuddy.form.LoginResponse
+import com.example.bloombuddy.menuFragment.MapFragment
 import com.example.bloombuddy.network.RetrofitClient
 import com.example.bloombuddy.network.ServiceApi
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -17,7 +31,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
+import com.gun0912.tedpermission.PermissionListener
+import com.gun0912.tedpermission.normal.TedPermission
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 import com.navercorp.nid.NaverIdLoginSDK
@@ -25,9 +42,16 @@ import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
 import com.navercorp.nid.profile.NidProfileCallback
 import com.navercorp.nid.profile.data.NidProfileResponse
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.*
+import java.io.FileDescriptor.out
 
 
 class LoginActivity : AppCompatActivity(), View.OnClickListener {
@@ -46,6 +70,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
     private var userName: String? = null
     private var userId: String? = null
     private var joinId: String? = null
+    private var hasPermission : Boolean = false
     private lateinit var service: ServiceApi
     private lateinit var mProgressView: ProgressBar
     private lateinit var createNewBtn: Button
@@ -53,6 +78,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var mPasswordView: EditText
     private lateinit var mLoginButton: Button
     private lateinit var api_token: String
+    private lateinit var api_type: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -229,7 +256,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO"))
+                api_type="KAKAO"
+                startLogin(LoginData(joinId, null, userName, api_type))
                 startMenuActivity("kakao")
             }
         }
@@ -247,7 +275,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
+                api_type = "GOOGLE"
+                startLogin(LoginData(joinId, null, userName, api_type))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -308,7 +337,8 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
                     joinId = "N$userName"
-                    startLogin(LoginData(joinId, null, userName, "NAVER"))
+                    api_type="NAVER"
+                    startLogin(LoginData(joinId, null, userName, api_type))
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }
@@ -374,7 +404,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (cancel) {
             focusView!!.requestFocus()
         } else {
-            startLogin(LoginData(userid, password, null, "BLOOM"))
+            joinId = userid
+            api_type = "BLOOM"
+            startLogin(LoginData(userid, password, null, api_type))
             showProgress(true)
         }
     }
@@ -385,7 +417,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val result: LoginResponse? = response.body()
                 Toast.makeText(this@LoginActivity, result!!.message, Toast.LENGTH_SHORT).show()
                 if (result.code == 327) {
-                    //sendProfileImage()
+                    sendProfileImage()
                 }
                 showProgress(false)
             }
@@ -399,9 +431,65 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         })
     }
 
-//    private fun sendProfileImage() {
-//        service.sendImg(data).enqueue(new Callback<>())
-//    }
+
+    private fun sendProfileImage() {
+        var bitmap_profile = MapFragment.ImageLoader.loadImage(userProfileUrl !!)
+        SaveBitmapToFileCache(bitmap_profile !!,"/data/user/0/com.example.bloombuddy/cache/img.jpeg" )
+        var imageFile = File("/data/user/0/com.example.bloombuddy/cache/img.jpeg")
+        var requestbody = imageFile.asRequestBody()
+        var requestbody2 = RequestBody.create("text/plain".toMediaTypeOrNull(), joinId!!)
+        var requestbody3 = RequestBody.create("text/plain".toMediaTypeOrNull(), api_type!!)
+        var body1: MultipartBody.Part =
+            MultipartBody.Part.createFormData("uploaded_file", "profileImg", requestbody)
+        var body2:MultipartBody.Part =
+            MultipartBody.Part.createFormData("joinID", "joinID", requestbody2)
+        var body3:MultipartBody.Part =
+            MultipartBody.Part.createFormData("apiType", "apiType", requestbody3)
+        service.sendImg(body1,body2,body3).enqueue(object:Callback<ImgResponse?>{
+            override fun onResponse(call: Call<ImgResponse?>, response: Response<ImgResponse?>) {
+                val result: ImgResponse? = response.body()
+                Log.e("로그인 성공", result!!.message)
+            }
+
+            override fun onFailure(call: Call<ImgResponse?>, t: Throwable) {
+                Toast.makeText(this@LoginActivity, "로그인 에러 발생", Toast.LENGTH_SHORT).show()
+                Log.e("로그인 에러 발생", t.message!!)
+            }
+        })
+    }
+
+    private fun SaveBitmapToFileCache(bitmap : Bitmap, strFilePath : String) {
+        var fileCacheItem = File(strFilePath);
+        var out : OutputStream ?= null;
+        if(hasPermission){
+            try
+            {
+                fileCacheItem.createNewFile();
+                out =  FileOutputStream(fileCacheItem);
+
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            }
+            catch (e : Exception)
+            {
+                e.printStackTrace();
+            }
+            finally
+            {
+                try
+                {
+                    out !!.close();
+                }
+                catch (e : IOException )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        else{
+            checkPermissions()
+        }
+    }
+
 
     private fun showProgress(show: Boolean) {
         mProgressView.visibility = if (show) View.VISIBLE else View.GONE
@@ -417,6 +505,31 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
             backPressedTime = tempTime
             Toast.makeText(applicationContext, "한번 더 뒤로가기를 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun checkPermissions() {
+        TedPermission.create()
+            .setPermissionListener(object : PermissionListener {
+                override fun onPermissionGranted() {
+                    hasPermission = true
+                }
+
+                override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {
+                    Toast.makeText(
+                        applicationContext,
+                        "저장소 권한 허용을 하지 않으면 서비스를 이용할 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    hasPermission = false
+                }
+            })
+            .setRationaleTitle("저장소 권한 요청")
+            .setRationaleMessage("프로필 설정을 위해 저장소 권한이 필요합니다")
+            .setDeniedMessage("[설정] -> [권한] 에서 저장소 권한을 허용해주세요.")
+            .setPermissions(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ).check()
+
     }
 
     companion object {

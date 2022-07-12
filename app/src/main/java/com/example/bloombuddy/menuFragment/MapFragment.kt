@@ -15,6 +15,9 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.core.app.ActivityCompat
 import com.example.bloombuddy.R
+import com.example.bloombuddy.form.Locationdata
+import com.example.bloombuddy.network.RetrofitClient
+import com.example.bloombuddy.network.ServiceApi
 import com.google.android.gms.location.*
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
@@ -49,6 +52,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var myMarker: Marker? = null
     private var bitmap: Bitmap? = null
     private var hasPermission = false
+    private lateinit var service: ServiceApi
 
     private var userName: String? = null
     private var userProfileUrl: String? = null
@@ -61,6 +65,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         arguments?.let {
             userData = it.getStringArray(ARG_PARAM1)
         }
+        service = RetrofitClient.getClient().create(ServiceApi::class.java)
     }
 
     override fun onCreateView(
@@ -342,4 +347,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 }
             }
     }
+
+    private fun sendUserlocation() {
+        //var data = Locationdata(userName,)
+        //service.sendLocation(data)
+    }
+
 }

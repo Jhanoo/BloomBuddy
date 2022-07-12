@@ -3,6 +3,7 @@ package com.example.bloombuddy
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.bloombuddy.databinding.ActivityMenuBinding
@@ -129,6 +130,18 @@ class MenuActivity : AppCompatActivity() {
                 }
                 false
             }
+        }
+    }
+
+    override fun onBackPressed() {
+        var tempTime = System.currentTimeMillis()
+        var intervalTime = tempTime - LoginActivity.backPressedTime
+
+        if (intervalTime in 0..LoginActivity.FINISH_INTERVAL_TIME)
+            super.onBackPressed()
+        else {
+            LoginActivity.backPressedTime = tempTime
+            Toast.makeText(applicationContext, "한번 더 뒤로가기를 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
     }
 

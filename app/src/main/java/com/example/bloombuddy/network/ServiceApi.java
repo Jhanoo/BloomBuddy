@@ -3,8 +3,11 @@ package com.example.bloombuddy.network;
 import com.example.bloombuddy.form.ImgResponse;
 import com.example.bloombuddy.form.JoinData;
 import com.example.bloombuddy.form.JoinResponse;
+import com.example.bloombuddy.form.LocationResponse;
+import com.example.bloombuddy.form.Locationdata;
 import com.example.bloombuddy.form.LoginData;
 import com.example.bloombuddy.form.LoginResponse;
+import com.example.bloombuddy.form.TotallocResult;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
@@ -21,7 +24,17 @@ public interface ServiceApi {
     @POST("/user/join")
     Call<JoinResponse> userJoin(@Body JoinData data);
 
+    @POST("/user/location")
+    Call<LocationResponse> sendLocation(@Body Locationdata data);
+
+    @POST("/user/other_locations")
+    Call<TotallocResult> othersLocate(@Body TotallocResult data);
+
     @Multipart
     @POST("/upload")
-    Call<ImgResponse> sendImg(@Part MultipartBody.Part file);
+    Call<ImgResponse> sendImg(
+            @Part MultipartBody.Part file,
+            @Part MultipartBody.Part userid,
+            @Part MultipartBody.Part apiType
+            );
 }
