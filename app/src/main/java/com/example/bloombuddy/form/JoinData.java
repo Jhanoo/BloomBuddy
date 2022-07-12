@@ -18,15 +18,11 @@ public class JoinData {
     @SerializedName("apiType")
     private String apiType;
 
-    @SerializedName("apiToken")
-    private String apiToken;
-
-    public JoinData(String userid, String userPwd, String nickname, String username, String apiType, String apiToken) {
+    public JoinData(String userid, String userPwd, String nickname, String username, String apiType) {
         this.userid = userid;
         this.nickname = nickname;
         this.userPwd = userPwd;
         this.username = username;
         this.apiType = apiType;
-        this.apiToken = apiToken;
     }
 }

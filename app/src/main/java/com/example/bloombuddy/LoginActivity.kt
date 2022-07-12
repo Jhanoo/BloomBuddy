@@ -18,10 +18,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
-import com.kakao.sdk.user.model.AccessTokenInfo
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
@@ -170,6 +168,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         val intent = Intent(this, MenuActivity::class.java)
         intent.putExtra("userData", arrayOf(platform, userId, userName, userProfileUrl))
         startActivityForResult(intent, REQUEST_CODE_LOGOUT)
+        finish()
     }
 
     private fun kakaoLogin() {
@@ -230,7 +229,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
+                startLogin(LoginData(joinId, null, userName, "KAKAO"))
                 startMenuActivity("kakao")
             }
         }
@@ -248,7 +247,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
+                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -386,7 +385,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val result: LoginResponse? = response.body()
                 Toast.makeText(this@LoginActivity, result!!.message, Toast.LENGTH_SHORT).show()
                 if (result.code == 327) {
-                    sendProfileImage()
+                    //sendProfileImage()
                 }
                 showProgress(false)
             }
@@ -400,9 +399,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         })
     }
 
-    private fun sendProfileImage() {
-        //service.sendImg(data).enqueue(new Callback<>())
-    }
+//    private fun sendProfileImage() {
+//        service.sendImg(data).enqueue(new Callback<>())
+//    }
 
     private fun showProgress(show: Boolean) {
         mProgressView.visibility = if (show) View.VISIBLE else View.GONE
