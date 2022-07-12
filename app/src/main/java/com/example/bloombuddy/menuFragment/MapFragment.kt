@@ -3,17 +3,19 @@ package com.example.bloombuddy.menuFragment
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.*
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import com.example.bloombuddy.R
 import com.example.bloombuddy.form.MarkerData
 import com.google.android.gms.location.*
@@ -21,10 +23,13 @@ import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
+import com.naver.maps.map.overlay.InfoWindow
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.util.FusedLocationSource
 import kotlinx.android.synthetic.main.fragment_map.view.*
+import kotlinx.android.synthetic.main.item_point.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,6 +37,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -56,10 +62,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var userProfileUrl: String? = null
     private var userId: String? = null
     private lateinit var platform: String
+    private var mContainer: ViewGroup? = null
 
+    private var markerMap: MutableMap<String, MarkerData> = mutableMapOf()
     private var markerArr: ArrayList<MarkerData> = ArrayList()
     private val defaultImage = OverlayImage.fromResource(R.drawable.user)
-
+    private lateinit var listener: Overlay.OnClickListener
+    private lateinit var infoWindow: InfoWindow
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +83,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-
+        mContainer = container
 
         return inflater.inflate(R.layout.fragment_map, container, false)
     }
@@ -117,14 +126,17 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 bitmap = getRoundedCornerBitmap(bitmap!!)
             }
         }
-        checkPermissions()
 
+        checkPermissions()
         markerArr.add(MarkerData("1", null, 36.3740953, 127.3656277))
         markerArr.add(MarkerData("2", null, 36.3741953, 127.3658277))
         markerArr.add(MarkerData("3", null, 36.3743953, 127.3655277))
         markerArr.add(MarkerData("4", null, 36.3744953, 127.3659277))
         markerArr.add(MarkerData("5", null, 36.3749953, 127.3661277))
         markerArr.add(MarkerData("6", null, 36.3748953, 127.3648277))
+        for (i in 0 until markerArr.size) {
+            markerMap[markerArr[i].userId] = markerArr[i]
+        }
     }
 
     override fun onStart() {
@@ -134,7 +146,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        if(hasPermission){
+        if (hasPermission) {
             setUpdateLocationListener()
         }
         mapView.onResume()
@@ -176,6 +188,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         naverMap.locationSource = locationSource
         naverMap.locationTrackingMode = LocationTrackingMode.Follow
 
+        setOverlayOnclickListener()
         uiSettings.isLocationButtonEnabled = true
         uiSettings.isLogoClickEnabled = false
         uiSettings.isCompassEnabled = true
@@ -183,6 +196,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         naverMap.mapType = NaverMap.MapType.Terrain
         mapMarkers()
+
+        val cameraPosition = CameraPosition(LatLng(36.3740953, 127.3656277), 17.0)
+        naverMap.cameraPosition = cameraPosition
+        infoWindow = InfoWindow()
+
+        infoWindow.adapter = object : InfoWindow.DefaultViewAdapter(requireContext()) {
+            override fun getContentView(iw: InfoWindow): View {
+                val view =  LayoutInflater.from(context)
+                    .inflate(R.layout.item_point, mContainer, false)
+                var marker = iw.marker
+                view.infoNameTv.text = markerMap[marker!!.tag]!!.userId
+                view.infoProfileImgView.setImageBitmap(marker.icon.getBitmap(context))
+
+
+                return view
+            }
+        }
     }
 
     // 위치 권한 확인 및 요청
@@ -345,9 +375,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return output
     }
 
-    private fun mapMarkers(){
+    private fun mapMarkers() {
         var marker: Marker
-        for(i in 0 until markerArr.size){
+        for (i in 0 until markerArr.size) {
             val loc = LatLng(markerArr[i].latitude, markerArr[i].longitude)
             marker = Marker()
             marker.position = loc
@@ -371,8 +401,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 marker.icon = OverlayImage.fromBitmap(profileBitmap!!)
             }
             marker.map = naverMap
+            marker.onClickListener = listener
 
+        }
+    }
 
+    private fun setOverlayOnclickListener() {
+        listener = Overlay.OnClickListener {
+            var marker = it as Marker
+            if(marker.infoWindow != null){
+                infoWindow.close()
+                true
+            }else{
+                infoWindow.open(marker)
+                true
+            }
+
+            false
         }
     }
 
