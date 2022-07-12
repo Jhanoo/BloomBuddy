@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/drawable/naver_button_selected_effect.xml" value="0.1545" />
         <entry key="app/src/main/res/drawable/selector_menu_icon.xml" value="0.222" />
         <entry key="app/src/main/res/layout/activity2_main.xml" value="0.19479166666666667" />
+        <entry key="app/src/main/res/layout/activity_join.xml" value="0.2140625" />
         <entry key="app/src/main/res/layout/activity_kakao_auth_code_handler.xml" value="0.21822916666666667" />
         <entry key="app/src/main/res/layout/activity_kakao_login.xml" value="0.19479166666666667" />
         <entry key="app/src/main/res/layout/activity_kotlin.xml" value="0.2803461710611979" />
