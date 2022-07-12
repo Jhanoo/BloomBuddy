@@ -18,10 +18,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
-import com.kakao.sdk.user.model.AccessTokenInfo
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
@@ -136,6 +134,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         val intent = Intent(this, MenuActivity::class.java)
         intent.putExtra("userData", arrayOf(platform, userId, userName, userProfileUrl))
         startActivityForResult(intent, REQUEST_CODE_LOGOUT)
+        finish()
     }
 
     private fun kakaoLogin() {
@@ -193,10 +192,10 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val kakaoUserAccount = user.kakaoAccount
                 val kakaoUser = kakaoUserAccount?.profile
                 userName = kakaoUser?.nickname
-                userProfileUrl = kakaoUser?.thumbnailImageUrl
+                userProfileUrl = kakaoUser?.profileImageUrl
                 userId = "" + user.id
                 joinId = "K$userName"
-                startLogin(LoginData(joinId, null, userName, "KAKAO", api_token))
+                startLogin(LoginData(joinId, null, userName, "KAKAO"))
                 startMenuActivity("kakao")
             }
         }
@@ -214,7 +213,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 if (googleUserProfile != null) userProfileUrl = "" + googleUserProfile
                 userId = googleUserId
                 joinId = "G$userName"
-                startLogin(LoginData(joinId, null, userName, "GOOGLE", null))
+                startLogin(LoginData(joinId, null, userName, "GOOGLE"))
                 startMenuActivity("google")
             }
         } catch (e: ApiException) {
@@ -270,9 +269,12 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                     val naverUserName = nidProfileResponse.profile!!.name
                     val naverUserId = nidProfileResponse.profile!!.id
                     val naverUserProfile = nidProfileResponse.profile!!.profileImage
+                    val naverToken = naverIdLoginSDK.getAccessToken()
                     userName = naverUserName
                     userProfileUrl = naverUserProfile
                     userId = naverUserId
+                    joinId = "N$userName"
+                    startLogin(LoginData(joinId, null, userName, "NAVER"))
                     startMenuActivity("naver")
                     Log.d("naver login", "naver login success")
                 }
@@ -338,7 +340,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         if (cancel) {
             focusView!!.requestFocus()
         } else {
-            startLogin(LoginData(userid, password, null, "BLOOM", null))
+            startLogin(LoginData(userid, password, null, "BLOOM"))
             showProgress(true)
         }
     }
@@ -349,7 +351,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
                 val result: LoginResponse? = response.body()
                 Toast.makeText(this@LoginActivity, result!!.message, Toast.LENGTH_SHORT).show()
                 if (result.code == 327) {
-                    sendProfileImage()
+                    //sendProfileImage()
                 }
                 showProgress(false)
             }
@@ -363,9 +365,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
         })
     }
 
-    private fun sendProfileImage() {
-        //service.sendImg(data).enqueue(new Callback<>())
-    }
+//    private fun sendProfileImage() {
+//        service.sendImg(data).enqueue(new Callback<>())
+//    }
 
     private fun showProgress(show: Boolean) {
         mProgressView.visibility = if (show) View.VISIBLE else View.GONE
