@@ -80,4 +80,6 @@ dependencies {
     }
     // TedPermission Library
     implementation 'io.github.ParkSangGwon:tedpermission-normal:3.3.0'
+    // Circle ImageView
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
 }
