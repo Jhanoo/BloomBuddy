@@ -3,8 +3,6 @@ package com.example.bloombuddy.menuFragment
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.*
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.OvalShape
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
@@ -91,7 +89,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mapView = view.mapView
-        Log.d("mapFragment", "" + (mapView == null))
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
@@ -128,12 +125,33 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
 
         checkPermissions()
-        markerArr.add(MarkerData("1", null, 36.3740953, 127.3656277))
-        markerArr.add(MarkerData("2", null, 36.3741953, 127.3658277))
-        markerArr.add(MarkerData("3", null, 36.3743953, 127.3655277))
-        markerArr.add(MarkerData("4", null, 36.3744953, 127.3659277))
-        markerArr.add(MarkerData("5", null, 36.3749953, 127.3661277))
-        markerArr.add(MarkerData("6", null, 36.3748953, 127.3648277))
+        markerArr.add(
+            MarkerData(
+                "김태훈",
+                "http://cdn.pixabay.com/photo/2022/07/07/14/00/otter-7307280_1280.jpg",
+                36.3743953,
+                127.3655277
+            )
+        )
+        markerArr.add(
+            MarkerData(
+                "정찬우",
+                "http://t1.daumcdn.net/cfile/tistory/24283C3858F778CA2E",
+                36.3740953,
+                127.3656277
+            )
+        )
+        markerArr.add(
+            MarkerData(
+                "이지현",
+                "https://lh3.googleusercontent.com/a-/AFdZucr8w61s9nKov8uLQ9p8qJoEL_lYw2XkHmFBM_s",
+                36.3741953,
+                127.3658277
+            )
+        )
+        Log.d("tag", "" + (userData?.get(3)))
+//        markerArr.add(MarkerData("김사은", null, 36.3744953, 127.3659277))
+//        markerArr.add(MarkerData("김재민", null, 36.3749953, 127.3661277))
         for (i in 0 until markerArr.size) {
             markerMap[markerArr[i].userId] = markerArr[i]
         }
@@ -195,7 +213,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         uiSettings.isCompassEnabled = false
 
         naverMap.mapType = NaverMap.MapType.Terrain
-        mapMarkers()
+        setMarkers()
 
         val cameraPosition = CameraPosition(LatLng(36.3740953, 127.3656277), 17.0)
         naverMap.cameraPosition = cameraPosition
@@ -203,7 +221,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         infoWindow.adapter = object : InfoWindow.DefaultViewAdapter(requireContext()) {
             override fun getContentView(iw: InfoWindow): View {
-                val view =  LayoutInflater.from(context)
+                val view = LayoutInflater.from(context)
                     .inflate(R.layout.item_point, mContainer, false)
                 var marker = iw.marker
                 view.infoNameTv.text = markerMap[marker!!.tag]!!.userId
@@ -323,7 +341,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 val url = URL(imageUrl)
                 val stream = url.openStream()
                 bitmap = BitmapFactory.decodeStream(stream)
-
+                Log.d("tagtag", "a " + (bitmap == null))
                 return bitmap
             } catch (e: MalformedURLException) {
                 e.printStackTrace()
@@ -375,33 +393,37 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return output
     }
 
-    private fun mapMarkers() {
-        var marker: Marker
+    private fun setMarkers() {
         for (i in 0 until markerArr.size) {
-            val loc = LatLng(markerArr[i].latitude, markerArr[i].longitude)
-            marker = Marker()
-            marker.position = loc
-            marker.width = 150
-            marker.height = 150
-            marker.tag = markerArr[i].userId
+            CoroutineScope(Dispatchers.Main).launch {
+                var marker: Marker
+                if (markerArr[i].profileURL != null) {
 
-            var profileBitmap: Bitmap? = null
-            if (markerArr[i].profileURL != null) {
-                CoroutineScope(Dispatchers.Main).launch {
+                    val loc = LatLng(markerArr[i].latitude, markerArr[i].longitude)
+                    marker = Marker()
+                    marker.position = loc
+                    marker.width = 150
+                    marker.height = 150
+                    marker.tag = markerArr[i].userId
+
+                    var profileBitmap: Bitmap? = null
                     profileBitmap = withContext(Dispatchers.IO) {
                         ImageLoader.loadImage(markerArr[i].profileURL)
                     }
-                    profileBitmap = getRoundedCornerBitmap(bitmap!!)
+                    Log.d("tag", "b = " + (profileBitmap == null))
+                    if (profileBitmap != null)
+                        profileBitmap = getRoundedCornerBitmap(profileBitmap!!)
+
+                    if (profileBitmap == null) {
+                        marker.icon = defaultImage
+                    } else {
+                        marker.icon = OverlayImage.fromBitmap(profileBitmap!!)
+                    }
+                    marker.map = naverMap
+                    marker.onClickListener = listener
                 }
             }
 
-            if (profileBitmap == null) {
-                marker.icon = defaultImage
-            } else {
-                marker.icon = OverlayImage.fromBitmap(profileBitmap!!)
-            }
-            marker.map = naverMap
-            marker.onClickListener = listener
 
         }
     }
@@ -409,10 +431,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun setOverlayOnclickListener() {
         listener = Overlay.OnClickListener {
             var marker = it as Marker
-            if(marker.infoWindow != null){
+            if (marker.infoWindow != null) {
                 infoWindow.close()
                 true
-            }else{
+            } else {
                 infoWindow.open(marker)
                 true
             }
